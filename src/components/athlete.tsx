@@ -8,6 +8,7 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock3,
+  CreditCard,
   Download,
   LogOut,
   MapPin,
@@ -20,6 +21,7 @@ import {
   UserRound,
   XCircle,
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Header, Footer, AccentPicker } from './navigation';
 import { DemoNotice, useApp } from './provider';
 import { Badge, EmptyState, Field, Modal, PageHeading, Panel, Stat } from './ui';
@@ -33,7 +35,8 @@ export default function Athlete() {
   const [tab, setTab] = useState('inscricoes'),
     [filter, setFilter] = useState(''),
     [detail, setDetail] = useState<Registration | null>(null),
-    [cancel, setCancel] = useState<Registration | null>(null);
+    [cancel, setCancel] = useState<Registration | null>(null),
+    [cardReg, setCardReg] = useState<Registration | null>(null);
   useEffect(() => {
     if (ready && (!session || session.role !== 'atleta')) router.replace('/entrar/?perfil=atleta');
   }, [ready, session, router]);
@@ -209,13 +212,22 @@ export default function Athlete() {
                                 Ver detalhes
                               </button>
                               {r.status === 'Confirmada' && (
-                                <button
-                                  className="icon-button"
-                                  aria-label={`Baixar comprovante de ${event.name}`}
-                                  onClick={() => downloadReceipt(r, event)}
-                                >
-                                  <Download size={17} />
-                                </button>
+                                <>
+                                  <button
+                                    className="icon-button"
+                                    aria-label={`Ver carteirinha de ${event.name}`}
+                                    onClick={() => setCardReg(r)}
+                                  >
+                                    <CreditCard size={17} />
+                                  </button>
+                                  <button
+                                    className="icon-button"
+                                    aria-label={`Baixar comprovante de ${event.name}`}
+                                    onClick={() => downloadReceipt(r, event)}
+                                  >
+                                    <Download size={17} />
+                                  </button>
+                                </>
                               )}
                               {r.status === 'Pendente' && (
                                 <button
@@ -365,6 +377,57 @@ export default function Athlete() {
                   Cancelar inscrição demonstrativa
                 </button>
               )}
+            </Modal>
+          );
+        })()}
+      {cardReg &&
+        (() => {
+          const r = db.registrations.find((x) => x.id === cardReg.id) || cardReg;
+          const event = db.events.find((e) => e.id === r.eventId)!;
+          return (
+            <Modal title="Carteirinha virtual" onClose={() => setCardReg(null)}>
+              <div className="virtual-card">
+                <div className="virtual-card-header">
+                  <strong>Largada</strong>
+                  <span>Carteirinha do atleta</span>
+                </div>
+                <div className="virtual-card-event">
+                  <h3>{event.name}</h3>
+                  <p>
+                    {dateLabel(event.date)} · {event.city}, {event.state}
+                  </p>
+                </div>
+                <div className="virtual-card-body">
+                  <div className="virtual-card-info">
+                    <div>
+                      <small>ATLETA</small>
+                      <strong>{r.name}</strong>
+                    </div>
+                    <div>
+                      <small>DISTÂNCIA</small>
+                      <strong>{r.distance}</strong>
+                    </div>
+                    <div>
+                      <small>CATEGORIA</small>
+                      <strong>{r.category}</strong>
+                    </div>
+                    {r.bib && (
+                      <div>
+                        <small>Nº DE PEITO</small>
+                        <strong>#{r.bib}</strong>
+                      </div>
+                    )}
+                  </div>
+                  <div className="virtual-card-qr">
+                    <QRCodeSVG value={`LARGADA:${r.id}:${event.id}`} size={110} />
+                    <small>{r.id}</small>
+                  </div>
+                </div>
+              </div>
+              <p className="modal-hint">
+                Apresente este QR Code no balcão de credenciamento. Dados demonstrativos — sem
+                validade real.
+              </p>
             </Modal>
           );
         })()}

@@ -1,4 +1,4 @@
-import type { Athlete, Database, RaceEvent, Registration, Sport } from './types';
+import type { Athlete, Database, EventResult, RaceEvent, Registration, Sport } from './types';
 import { categoryFor } from './utils';
 
 export const demoProfile: Athlete = {
@@ -47,6 +47,7 @@ export const seedEvents: RaceEvent[] = [
     description:
       'O cerrado é o nosso ponto de partida. Uma manhã para correr pelas ruas de Unaí, encontrar sua comunidade e descobrir até onde você pode chegar. Percurso sinalizado, pontos de hidratação e uma arena preparada para receber atletas e famílias. Escolha sua distância e venha fazer parte desta história.',
     registrationEnd: '2026-12-01',
+    whatsapp: 'https://wa.me/5538999990001',
     featured: true,
   },
   {
@@ -70,6 +71,8 @@ export const seedEvents: RaceEvent[] = [
     description:
       'Entre trilhas e montanhas, uma experiência de conexão com a natureza. Percursos de diferentes níveis, apoio ao atleta e vistas que fazem cada subida valer a pena.',
     registrationEnd: '2026-12-08',
+    whatsapp: 'https://wa.me/5562999990002',
+    strava: 'https://www.strava.com/routes/3215467890',
   },
   {
     ...common,
@@ -136,6 +139,8 @@ export const seedEvents: RaceEvent[] = [
     description:
       'Um encontro para quem vive sobre duas rodas. Percurso de estrada com apoio, hidratação e estrutura de chegada.',
     registrationEnd: '2027-01-12',
+    registrationStart: '2026-11-20',
+    whatsapp: 'https://wa.me/5562999990003',
   },
   {
     ...common,
@@ -158,6 +163,8 @@ export const seedEvents: RaceEvent[] = [
     description:
       'Nade, pedale e corra em uma experiência completa. Uma arena pensada para acolher novos triatletas e quem já faz do esporte seu estilo de vida.',
     registrationEnd: '2027-01-19',
+    registrationStart: '2026-12-01',
+    whatsapp: 'https://wa.me/5531999990004',
   },
   {
     ...common,
@@ -199,6 +206,18 @@ export const seedEvents: RaceEvent[] = [
     description:
       'Uma manhã de encontro e movimento no parque. Esta edição já encerrou suas inscrições.',
     registrationEnd: '2026-10-20',
+    results: [
+      { pos: 1, name: 'Rafael Costa', distance: '5 km', category: 'M 30-39', time: '00:17:42', pace: '03:32/km' },
+      { pos: 2, name: 'Lucas Martins', distance: '5 km', category: 'M 20-29', time: '00:18:05', pace: '03:37/km' },
+      { pos: 3, name: 'Gabriel Araújo', distance: '5 km', category: 'M 20-29', time: '00:18:31', pace: '03:42/km' },
+      { pos: 4, name: 'Fernanda Dias', distance: '5 km', category: 'F 30-39', time: '00:19:14', pace: '03:51/km' },
+      { pos: 5, name: 'Carolina Ramos', distance: '5 km', category: 'F 20-29', time: '00:20:03', pace: '04:01/km' },
+      { pos: 6, name: 'Thiago Barbosa', distance: '5 km', category: 'M 40-49', time: '00:20:45', pace: '04:09/km' },
+      { pos: 7, name: 'Isabela Mendes', distance: '5 km', category: 'F 20-29', time: '00:21:18', pace: '04:16/km' },
+      { pos: 8, name: 'Vinícius Melo', distance: '5 km', category: 'M 20-29', time: '00:21:52', pace: '04:22/km' },
+      { pos: 9, name: 'Bianca Teixeira', distance: '5 km', category: 'F 30-39', time: '00:22:30', pace: '04:30/km' },
+      { pos: 10, name: 'André Nascimento', distance: '5 km', category: 'M 50-59', time: '00:23:07', pace: '04:37/km' },
+    ] as EventResult[],
   },
 ];
 export const sports: Sport[] = ['Corrida de Rua', 'MTB', 'Ciclismo', 'Trail Run', 'Triathlon'];

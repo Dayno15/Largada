@@ -83,6 +83,16 @@ export function EventCard({ event, used }: { event: RaceEvent; used: number }) {
   const pct = Math.min(100, Math.round((used / event.capacity) * 100));
   const almostFull = pct >= 75;
   const lastSpots = open && pct >= 80;
+  const upcoming = event.status === 'Em breve';
+  const daysUntilReg =
+    upcoming && event.registrationStart
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(event.registrationStart + 'T12:00:00').getTime() - Date.now()) / 86400000,
+          ),
+        )
+      : null;
   return (
     <Link ref={ref} href={`/evento/?id=${event.id}`} className={`event-card${visible ? ' in' : ''}`}>
       <div className="event-image">
@@ -123,6 +133,12 @@ export function EventCard({ event, used }: { event: RaceEvent; used: number }) {
               <span>{used} inscritos</span>
               <span className={almostFull ? 'capacity-urgent' : ''}>{event.capacity - used} vagas</span>
             </div>
+          </div>
+        )}
+        {upcoming && daysUntilReg !== null && (
+          <div className="countdown-notice">
+            <CalendarDays size={12} />
+            {daysUntilReg > 0 ? `Inscrições em ${daysUntilReg} dias` : 'Inscrições em breve'}
           </div>
         )}
         <div className="event-card-bottom">

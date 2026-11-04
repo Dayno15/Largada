@@ -3114,6 +3114,178 @@ td small {
   line-height: 1.8;
   padding-bottom: 18px;
 }
+/* Countdown notice on event cards (Em breve) */
+.countdown-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--brand-ink);
+  background: var(--brand-soft);
+  border: 1px solid color-mix(in srgb, var(--brand) 20%, transparent);
+  border-radius: 20px;
+  padding: 3px 9px 3px 7px;
+  margin-top: 9px;
+}
+/* Event links row (WhatsApp / Strava) in event-detail */
+.event-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+/* Booking countdown block in aside (Em breve) */
+.booking-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: var(--brand-soft);
+  border: 1px solid color-mix(in srgb, var(--brand) 20%, transparent);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.booking-countdown svg {
+  color: var(--brand-ink);
+  margin-bottom: 4px;
+}
+.booking-countdown > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.booking-countdown > strong {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--brand-ink);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.booking-countdown > small {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+/* Find registration result grid */
+.find-result {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin: 14px 0;
+}
+.find-result > div small {
+  display: block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.find-result > div strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+/* Virtual athlete card */
+.virtual-card {
+  border: 2px solid var(--brand);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.virtual-card-header {
+  background: var(--brand);
+  color: #fff;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.virtual-card-header > strong {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.virtual-card-header > span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.virtual-card-event {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.virtual-card-event h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.virtual-card-event p {
+  font-size: 11px;
+  color: var(--muted);
+}
+.virtual-card-body {
+  display: flex;
+}
+.virtual-card-info {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 16px 18px;
+}
+.virtual-card-info small {
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.virtual-card-info strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+.virtual-card-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 18px;
+  border-left: 1px solid var(--border);
+}
+.virtual-card-qr svg {
+  display: block;
+}
+.virtual-card-qr small {
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  max-width: 110px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .virtual-card-body {
+    flex-direction: column;
+  }
+  .virtual-card-qr {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+}
 @media print {
   .site-header,
   .site-footer,

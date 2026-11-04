@@ -15,6 +15,9 @@ import {
   Route,
   ChevronDown,
   ExternalLink,
+  MessageCircle,
+  Timer,
+  Trophy,
   PackageCheck,
   Users,
 } from 'lucide-react';
@@ -22,6 +25,7 @@ import { Header, Footer } from './navigation';
 import { DemoNotice, useApp } from './provider';
 import { Badge, EmptyState, Panel, SportIcon, Modal } from './ui';
 import { asset, dateLabel, money, shortDate } from '@/lib/utils';
+import type { Registration } from '@/lib/types';
 
 const faqItems = [
   {
@@ -52,7 +56,10 @@ export default function EventDetail() {
   const event = db.events.find((e) => e.id === params.get('id') && e.status !== 'Rascunho');
   const [tab, setTab] = useState('Sobre a prova'),
     [rules, setRules] = useState(false),
-    [faqOpen, setFaqOpen] = useState<number | null>(null);
+    [faqOpen, setFaqOpen] = useState<number | null>(null),
+    [findModal, setFindModal] = useState(false),
+    [findCpf, setFindCpf] = useState(''),
+    [findResult, setFindResult] = useState<Registration | 'not-found' | null>(null);
   if (!event)
     return (
       <>
@@ -76,6 +83,18 @@ export default function EventDetail() {
     (r) => r.eventId === event.id && r.status !== 'Cancelada',
   );
   const open = event.status === 'Inscrições abertas';
+  const soldOut = open && inscritos.length >= event.capacity;
+  const daysUntilStart = event.registrationStart
+    ? Math.max(0, Math.ceil((new Date(event.registrationStart + 'T12:00:00').getTime() - Date.now()) / 86400000))
+    : null;
+  const findReg = () => {
+    const cpf = findCpf.replace(/\D/g, '');
+    if (!cpf) return;
+    const reg = db.registrations.find(
+      (r) => r.eventId === event.id && r.cpf.replace(/\D/g, '') === cpf,
+    );
+    setFindResult(reg ?? 'not-found');
+  };
   useEffect(() => {
     document.title = `${event.name} | CorridaAqui`;
     return () => {
@@ -159,6 +178,7 @@ export default function EventDetail() {
                 'Regulamento',
                 'Dúvidas frequentes',
                 ...(event.publicList ? ['Inscritos'] : []),
+                ...(event.results?.length ? ['Resultados'] : []),
               ].map((t) => (
                 <button className={tab === t ? 'active' : ''} onClick={() => setTab(t)} key={t}>
                   {t}
@@ -248,6 +268,34 @@ export default function EventDetail() {
                       <ExternalLink size={13} />
                     </a>
                   </div>
+                  {(event.whatsapp || event.strava) && (
+                    <div className="event-links">
+                      {event.whatsapp && (
+                        <a
+                          href={event.whatsapp}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="button button-outline button-small"
+                        >
+                          <MessageCircle size={14} />
+                          WhatsApp do evento
+                          <ExternalLink size={11} />
+                        </a>
+                      )}
+                      {event.strava && (
+                        <a
+                          href={event.strava}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="button button-outline button-small"
+                        >
+                          <Route size={14} />
+                          Ver rota no Strava
+                          <ExternalLink size={11} />
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
               {tab === 'Percursos e categorias' && (
@@ -305,6 +353,49 @@ export default function EventDetail() {
                     <ShieldCheck size={17} />
                     Apresente seu documento e comprovante de inscrição. A entrega do kit poderá ser
                     acompanhada na sua área.
+                  </div>
+                </>
+              )}
+              {tab === 'Resultados' && event.results && (
+                <>
+                  <h2>Resultados oficiais.</h2>
+                  <p>
+                    Classificação final por distância. Os tempos são demonstrativos e servem como
+                    referência para a experiência da plataforma.
+                  </p>
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Atleta</th>
+                          <th>Distância</th>
+                          <th>Categoria</th>
+                          <th>Tempo</th>
+                          <th>Pace</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {event.results.map((r) => (
+                          <tr key={r.pos}>
+                            <td>
+                              <strong>{r.pos}°</strong>
+                            </td>
+                            <td>{r.name}</td>
+                            <td>{r.distance}</td>
+                            <td>{r.category}</td>
+                            <td>
+                              <strong>{r.time}</strong>
+                            </td>
+                            <td>{r.pace}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="info-message spaced">
+                    <Trophy size={17} />
+                    Classificação por tempo líquido. Categorias por faixa etária e sexo.
                   </div>
                 </>
               )}
@@ -402,7 +493,7 @@ export default function EventDetail() {
                 <span>{inscritos.length} atletas já garantiram seu lugar</span>
                 <strong>{Math.max(0, event.capacity - inscritos.length)} vagas</strong>
               </div>
-              {open ? (
+              {open && !soldOut ? (
                 <Link
                   href={`/inscricao/?evento=${event.id}`}
                   className="button button-primary full-width"
@@ -410,14 +501,43 @@ export default function EventDetail() {
                   Quero me inscrever
                   <ArrowRight size={17} />
                 </Link>
+              ) : open && soldOut ? (
+                <button disabled className="button button-outline full-width">
+                  Vagas esgotadas
+                </button>
+              ) : event.status === 'Em breve' ? (
+                <>
+                  {daysUntilStart !== null && (
+                    <div className="booking-countdown">
+                      <Timer size={18} />
+                      <span>Inscrições abrem em</span>
+                      <strong>{daysUntilStart > 0 ? `${daysUntilStart} dias` : 'breve'}</strong>
+                      {event.registrationStart && daysUntilStart > 0 && (
+                        <small>a partir de {shortDate(event.registrationStart)}</small>
+                      )}
+                    </div>
+                  )}
+                  <button disabled className="button button-outline full-width">
+                    Inscrições em breve
+                  </button>
+                </>
               ) : (
                 <button disabled className="button button-outline full-width">
-                  {event.status === 'Em breve' ? 'Inscrições em breve' : 'Inscrições encerradas'}
+                  Inscrições encerradas
                 </button>
               )}
+              <button
+                className="button button-ghost full-width"
+                style={{ fontSize: 11 }}
+                onClick={() => setFindModal(true)}
+              >
+                Já tenho inscrição — consultar
+              </button>
               <div className="booking-deadline">
                 <CalendarDays size={14} />
-                Até {shortDate(event.registrationEnd)}
+                {event.status === 'Em breve' && event.registrationStart
+                  ? `Abertura: ${shortDate(event.registrationStart)}`
+                  : `Até ${shortDate(event.registrationEnd)}`}
               </div>
               <hr className="divider" />
               <div className="booking-safe">
@@ -433,6 +553,111 @@ export default function EventDetail() {
         </div>
       </main>
       <Footer />
+      {findModal && (
+        <Modal
+          title="Consultar minha inscrição"
+          onClose={() => {
+            setFindModal(false);
+            setFindCpf('');
+            setFindResult(null);
+          }}
+        >
+          {findResult === null && (
+            <>
+              <p className="section-description">
+                Digite seu CPF para verificar se você já está inscrito neste evento.
+              </p>
+              <label className="field">
+                <span>CPF</span>
+                <input
+                  placeholder="000.000.000-00"
+                  value={findCpf}
+                  onChange={(e) => setFindCpf(e.target.value)}
+                  maxLength={14}
+                  onKeyDown={(e) => e.key === 'Enter' && findReg()}
+                />
+              </label>
+              <div className="modal-actions">
+                <button className="button button-primary" onClick={findReg}>
+                  Consultar
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </>
+          )}
+          {findResult === 'not-found' && (
+            <>
+              <p className="section-description">
+                Nenhuma inscrição encontrada com este CPF para este evento.
+              </p>
+              <div className="modal-actions">
+                <button
+                  className="button button-outline"
+                  onClick={() => {
+                    setFindCpf('');
+                    setFindResult(null);
+                  }}
+                >
+                  Tentar novamente
+                </button>
+                {open && !soldOut && (
+                  <Link
+                    href={`/inscricao/?evento=${event.id}`}
+                    className="button button-primary"
+                    onClick={() => setFindModal(false)}
+                  >
+                    Inscrever-se
+                    <ArrowRight size={15} />
+                  </Link>
+                )}
+              </div>
+            </>
+          )}
+          {findResult && findResult !== 'not-found' && (
+            <>
+              <div className="find-result">
+                <div>
+                  <small>ATLETA</small>
+                  <strong>{findResult.name}</strong>
+                </div>
+                <div>
+                  <small>INSCRIÇÃO</small>
+                  <strong>{findResult.id}</strong>
+                </div>
+                <div>
+                  <small>DISTÂNCIA</small>
+                  <strong>{findResult.distance}</strong>
+                </div>
+                <div>
+                  <small>STATUS</small>
+                  <Badge>{findResult.status}</Badge>
+                </div>
+                {findResult.bib && (
+                  <div>
+                    <small>NÚMERO DE PEITO</small>
+                    <strong>#{findResult.bib}</strong>
+                  </div>
+                )}
+                <div>
+                  <small>KIT</small>
+                  <strong>{findResult.kitDelivered ? 'Retirado' : 'A retirar'}</strong>
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button
+                  className="button button-outline"
+                  onClick={() => {
+                    setFindModal(false);
+                    setFindResult(null);
+                  }}
+                >
+                  Fechar
+                </button>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
       {rules && (
         <Modal title="Termo de responsabilidade" onClose={() => setRules(false)}>
           <p className="section-description">

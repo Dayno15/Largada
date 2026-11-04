@@ -212,6 +212,13 @@ export function EventEditor({ event, onClose }: { event?: RaceEvent; onClose: ()
                   onChange={(e) => set('registrationEnd', e.target.value)}
                 />
               </Field>
+              <Field label="Abertura das inscrições">
+                <input
+                  type="date"
+                  value={draft.registrationStart || ''}
+                  onChange={(e) => set('registrationStart', e.target.value || undefined)}
+                />
+              </Field>
               <Field label="Cidade *">
                 <input value={draft.city} onChange={(e) => set('city', e.target.value)} />
               </Field>
@@ -230,6 +237,22 @@ export function EventEditor({ event, onClose }: { event?: RaceEvent; onClose: ()
                   value={draft.description}
                   onChange={(e) => set('description', e.target.value)}
                   rows={4}
+                />
+              </Field>
+              <Field label="WhatsApp do evento (link)">
+                <input
+                  type="url"
+                  placeholder="https://wa.me/55..."
+                  value={draft.whatsapp || ''}
+                  onChange={(e) => set('whatsapp', e.target.value || undefined)}
+                />
+              </Field>
+              <Field label="Rota no Strava (link)">
+                <input
+                  type="url"
+                  placeholder="https://www.strava.com/routes/..."
+                  value={draft.strava || ''}
+                  onChange={(e) => set('strava', e.target.value || undefined)}
                 />
               </Field>
             </div>

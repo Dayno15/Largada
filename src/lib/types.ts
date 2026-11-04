@@ -7,6 +7,14 @@ export interface Distance {
   price: number;
   capacity: number;
 }
+export interface EventResult {
+  pos: number;
+  name: string;
+  distance: string;
+  category: string;
+  time: string;
+  pace: string;
+}
 export interface RaceEvent {
   id: string;
   name: string;
@@ -30,6 +38,10 @@ export interface RaceEvent {
   shirt: boolean;
   publicList: boolean;
   registrationEnd: string;
+  registrationStart?: string;
+  whatsapp?: string;
+  strava?: string;
+  results?: EventResult[];
   createdAt: string;
   featured?: boolean;
 }
