@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Check,
   Route,
+  ChevronDown,
   ExternalLink,
   PackageCheck,
   Users,
@@ -22,12 +23,36 @@ import { DemoNotice, useApp } from './provider';
 import { Badge, EmptyState, Panel, SportIcon, Modal } from './ui';
 import { asset, dateLabel, money, shortDate } from '@/lib/utils';
 
+const faqItems = [
+  {
+    q: 'Como funciona a retirada do kit?',
+    a: 'A retirada acontece um ou dois dias antes da prova, no local indicado pela organização. Leve seu documento com foto e o comprovante de inscrição. Os detalhes estão na aba "Kit do atleta".',
+  },
+  {
+    q: 'Posso transferir minha inscrição para outra pessoa?',
+    a: 'A política de transferência é definida pela organização. Consulte os prazos e condições disponíveis na sua área do atleta. A transferência pode estar sujeita a taxas administrativas.',
+  },
+  {
+    q: 'Qual é a idade mínima para participar?',
+    a: 'A idade mínima é 16 anos. Participantes menores de 18 anos precisam de autorização de um responsável legal, apresentada no momento da retirada do kit.',
+  },
+  {
+    q: 'Como funciona o cancelamento da inscrição?',
+    a: 'Cancelamentos têm prazos e condições definidos pela organização do evento. Acesse sua área do atleta para verificar as opções disponíveis. Este é um ambiente demonstrativo e não realiza cobranças reais.',
+  },
+  {
+    q: 'Como saberei meu número de peito?',
+    a: 'O número de peito é definido pela organização e disponibilizado na sua área do atleta próximo à data da prova. Ele também será entregue junto ao kit no dia da retirada.',
+  },
+];
+
 export default function EventDetail() {
   const params = useSearchParams();
   const { db, toast } = useApp();
   const event = db.events.find((e) => e.id === params.get('id') && e.status !== 'Rascunho');
   const [tab, setTab] = useState('Sobre a prova'),
-    [rules, setRules] = useState(false);
+    [rules, setRules] = useState(false),
+    [faqOpen, setFaqOpen] = useState<number | null>(null);
   if (!event)
     return (
       <>
@@ -51,12 +76,23 @@ export default function EventDetail() {
     (r) => r.eventId === event.id && r.status !== 'Cancelada',
   );
   const open = event.status === 'Inscrições abertas';
+  useEffect(() => {
+    document.title = `${event.name} | CorridaAqui`;
+    return () => {
+      document.title = 'CorridaAqui — Seu próximo ponto de partida';
+    };
+  }, [event.name]);
   const share = async () => {
+    const url = window.location.href;
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast('Link do evento copiado.');
+      if (navigator.share) {
+        await navigator.share({ title: event.name, text: event.subtitle, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast('Link do evento copiado.');
+      }
     } catch {
-      toast('Copie o endereço do evento na barra do navegador.');
+      // user cancelled or clipboard unavailable
     }
   };
   return (
@@ -121,6 +157,7 @@ export default function EventDetail() {
                 'Percursos e categorias',
                 'Kit do atleta',
                 'Regulamento',
+                'Dúvidas frequentes',
                 ...(event.publicList ? ['Inscritos'] : []),
               ].map((t) => (
                 <button className={tab === t ? 'active' : ''} onClick={() => setTab(t)} key={t}>
@@ -193,23 +230,23 @@ export default function EventDetail() {
                     {event.venue} · {event.city}, {event.state}
                   </p>
                   <div className="location-preview">
-                    <div className="map-road road-1" />
-                    <div className="map-road road-2" />
-                    <div className="map-road road-3" />
-                    <span className="map-pin">
-                      <MapPin size={28} />
-                    </span>
-                    <span className="map-label">{event.venue}</span>
+                    <iframe
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(event.venue + ', ' + event.city + ', ' + event.state + ', Brasil')}&output=embed&z=15&hl=pt-BR`}
+                      className="map-iframe"
+                      loading="lazy"
+                      title={`Localização: ${event.venue}`}
+                      allowFullScreen
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venue + ' ' + event.city + ' ' + event.state)}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venue + ', ' + event.city + ', ' + event.state)}`}
                       target="_blank"
                       rel="noreferrer"
                       className="button button-outline button-small"
                     >
-                      Abrir localização
+                      Abrir no Google Maps
                       <ExternalLink size={13} />
                     </a>
-                    <small>Localização ilustrativa</small>
                   </div>
                 </>
               )}
@@ -268,6 +305,26 @@ export default function EventDetail() {
                     <ShieldCheck size={17} />
                     Apresente seu documento e comprovante de inscrição. A entrega do kit poderá ser
                     acompanhada na sua área.
+                  </div>
+                </>
+              )}
+              {tab === 'Dúvidas frequentes' && (
+                <>
+                  <h2>Tire suas dúvidas antes de largar.</h2>
+                  <p>As perguntas mais frequentes sobre inscrições, kits e participação.</p>
+                  <div className="faq-accordion">
+                    {faqItems.map((item, i) => (
+                      <div key={i} className={`faq-item${faqOpen === i ? ' open' : ''}`}>
+                        <button
+                          className="faq-question"
+                          onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+                        >
+                          {item.q}
+                          <ChevronDown size={16} />
+                        </button>
+                        {faqOpen === i && <p className="faq-answer">{item.a}</p>}
+                      </div>
+                    ))}
                   </div>
                 </>
               )}

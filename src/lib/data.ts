@@ -35,7 +35,7 @@ export const seedEvents: RaceEvent[] = [
     city: 'Unaí',
     state: 'MG',
     venue: 'Praça da Matriz, Centro',
-    image: '/images/running.jpg',
+    image: '/images/city-run.jpg',
     status: 'Inscrições abertas',
     organizerId: 'org-1',
     distances: [
@@ -103,7 +103,7 @@ export const seedEvents: RaceEvent[] = [
     city: 'Brasília',
     state: 'DF',
     venue: 'Parque da Cidade, estacionamento 10',
-    image: '/images/city-run.jpg',
+    image: '/images/running.jpg',
     status: 'Inscrições abertas',
     organizerId: 'org-2',
     distances: [
@@ -169,7 +169,7 @@ export const seedEvents: RaceEvent[] = [
     city: 'Uberlândia',
     state: 'MG',
     venue: 'Parque do Sabiá',
-    image: '/images/city-run.jpg',
+    image: '/images/trail.jpg',
     status: 'Inscrições abertas',
     organizerId: 'org-3',
     distances: [
@@ -191,7 +191,7 @@ export const seedEvents: RaceEvent[] = [
     city: 'São Paulo',
     state: 'SP',
     venue: 'Parque Villa-Lobos',
-    image: '/images/running.jpg',
+    image: '/images/city-run.jpg',
     status: 'Encerrado',
     organizerId: 'org-2',
     distances: [{ name: '5 km', price: 79, capacity: 400 }],

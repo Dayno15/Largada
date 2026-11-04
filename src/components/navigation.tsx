@@ -2,7 +2,21 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { ArrowUpRight, Menu, Moon, Sun, X, Route, UserRound, Palette } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Menu,
+  Moon,
+  Sun,
+  X,
+  Route,
+  UserRound,
+  Palette,
+  Mail,
+  MessageCircle,
+  Instagram,
+  Youtube,
+  Activity,
+} from 'lucide-react';
 import { useApp } from './provider';
 
 export function Brand() {
@@ -102,16 +116,61 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <div className="container">
-        <div className="footer-main">
-          <div>
+        <div className="footer-grid">
+          <div className="footer-brand-col">
             <Brand />
-            <p>O seu próximo ponto de partida.</p>
+            <p>
+              Encontre seu próximo desafio. Eventos esportivos, inscrições e gestão em uma
+              plataforma.
+            </p>
+            <div className="footer-social">
+              <a
+                href="#"
+                aria-label="Instagram"
+                className="social-link"
+                onClick={(e) => e.preventDefault()}
+              >
+                <Instagram size={16} />
+              </a>
+              <a
+                href="#"
+                aria-label="YouTube"
+                className="social-link"
+                onClick={(e) => e.preventDefault()}
+              >
+                <Youtube size={16} />
+              </a>
+              <a
+                href="#"
+                aria-label="Strava"
+                className="social-link"
+                onClick={(e) => e.preventDefault()}
+              >
+                <Activity size={16} />
+              </a>
+            </div>
           </div>
-          <div className="footer-links">
-            <Link href="/">Eventos</Link>
+          <div className="footer-links-col">
+            <strong>Plataforma</strong>
+            <Link href="/">Explorar eventos</Link>
             <Link href="/entrar/?perfil=atleta">Área do atleta</Link>
-            <Link href="/entrar/?perfil=organizador">Organizador</Link>
-            <Link href="/entrar/?perfil=admin">Administração</Link>
+            <Link href="/entrar/?perfil=organizador">Para organizadores</Link>
+          </div>
+          <div className="footer-links-col">
+            <strong>Legal</strong>
+            <Link href="/termos/">Termos de uso</Link>
+            <Link href="/privacidade/">Política de privacidade</Link>
+          </div>
+          <div className="footer-links-col">
+            <strong>Contato</strong>
+            <a href="mailto:oi@corridaqui.demo">
+              <Mail size={13} />
+              oi@corridaqui.demo
+            </a>
+            <a href="#" onClick={(e) => e.preventDefault()}>
+              <MessageCircle size={13} />
+              WhatsApp
+            </a>
           </div>
         </div>
         <div className="footer-bottom">

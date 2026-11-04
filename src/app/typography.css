@@ -2,7 +2,7 @@
    Keep these overrides after the component styles so mobile captions do not
    fall back to the original, overly compact demonstration sizes. */
 :root {
-  --text-caption: 11px;
+  --text-caption: 12px;
   --text-small: 12px;
   --text-label: 13px;
   --text-body: 14px;

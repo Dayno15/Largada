@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -12,8 +12,14 @@ import {
   List,
   X,
   ChevronDown,
-  MoveUpRight,
   ShieldCheck,
+  Compass,
+  Ticket,
+  Flag,
+  Users,
+  TrendingUp,
+  CheckCircle2,
+  Heart,
 } from 'lucide-react';
 import { Header, Footer } from './navigation';
 import { useApp } from './provider';
@@ -22,10 +28,63 @@ import { sports } from '@/lib/data';
 import { asset, clean, dateLabel, money, states } from '@/lib/utils';
 import type { RaceEvent } from '@/lib/types';
 
-export function EventCard({ event }: { event: RaceEvent }) {
-  const open = event.status === 'Inscrições abertas';
+function useIntersect(ref: { current: Element | null }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setVisible(true);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.08 },
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [ref]);
+  return visible;
+}
+
+function FavoriteBtn({ eventId }: { eventId: string }) {
+  const [fav, setFav] = useState(false);
+  useEffect(() => {
+    const favs: string[] = JSON.parse(localStorage.getItem('cq_favs') || '[]');
+    setFav(favs.includes(eventId));
+  }, [eventId]);
+  const toggle = (e: { preventDefault(): void; stopPropagation(): void }) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const favs: string[] = JSON.parse(localStorage.getItem('cq_favs') || '[]');
+    const next = fav ? favs.filter((id) => id !== eventId) : [...favs, eventId];
+    localStorage.setItem('cq_favs', JSON.stringify(next));
+    setFav(!fav);
+  };
   return (
-    <Link href={`/evento/?id=${event.id}`} className="event-card">
+    <button
+      className={`fav-btn${fav ? ' active' : ''}`}
+      onClick={toggle}
+      aria-label={fav ? 'Remover dos favoritos' : 'Favoritar evento'}
+    >
+      <Heart size={15} />
+    </button>
+  );
+}
+
+export function EventCard({ event, used }: { event: RaceEvent; used: number }) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const visible = useIntersect(ref);
+  const open = event.status === 'Inscrições abertas';
+  const pct = Math.min(100, Math.round((used / event.capacity) * 100));
+  const almostFull = pct >= 75;
+  const lastSpots = open && pct >= 80;
+  return (
+    <Link ref={ref} href={`/evento/?id=${event.id}`} className={`event-card${visible ? ' in' : ''}`}>
       <div className="event-image">
         <img src={asset(event.image)} alt={`${event.sport} em ${event.city}`} loading="lazy" />
         <div className="event-image-top">
@@ -33,8 +92,11 @@ export function EventCard({ event }: { event: RaceEvent }) {
             <SportIcon sport={event.sport} size={14} />
             {event.sport}
           </span>
-          <span className="image-arrow">
-            <ArrowUpRight size={18} />
+          <span className="image-top-right">
+            <FavoriteBtn eventId={event.id} />
+            <span className="image-arrow">
+              <ArrowUpRight size={18} />
+            </span>
           </span>
         </div>
         <div className="event-date-tile">
@@ -44,7 +106,7 @@ export function EventCard({ event }: { event: RaceEvent }) {
       </div>
       <div className="event-body">
         <div className="event-card-status">
-          <Badge>{event.status}</Badge>
+          {lastSpots ? <Badge tone="amber">Últimas vagas!</Badge> : <Badge>{event.status}</Badge>}
           <span>{event.distances.map((d) => d.name).join(' / ')}</span>
         </div>
         <h3>{event.name}</h3>
@@ -52,6 +114,17 @@ export function EventCard({ event }: { event: RaceEvent }) {
           <MapPin size={14} />
           {event.city}, {event.state}
         </div>
+        {open && (
+          <div className="capacity-row">
+            <div className="capacity-bar">
+              <div className={`capacity-fill${almostFull ? ' warning' : ''}`} style={{ width: `${pct}%` }} />
+            </div>
+            <div className="capacity-label">
+              <span>{used} inscritos</span>
+              <span className={almostFull ? 'capacity-urgent' : ''}>{event.capacity - used} vagas</span>
+            </div>
+          </div>
+        )}
         <div className="event-card-bottom">
           <div>
             <small>A partir de</small>
@@ -66,8 +139,33 @@ export function EventCard({ event }: { event: RaceEvent }) {
     </Link>
   );
 }
+
+const testimonials = [
+  {
+    quote:
+      'Primeira meia maratona da minha vida! A plataforma foi tão simples que fiz a inscrição em menos de 5 minutos. No dia da prova, tudo impecável.',
+    name: 'Mariana S.',
+    initials: 'MS',
+    race: 'Meia Maratona do Cerrado',
+  },
+  {
+    quote:
+      'Já participei de várias corridas, mas essa foi diferente. A inscrição online facilitou demais e ainda consegui acompanhar tudo em tempo real.',
+    name: 'Rafael T.',
+    initials: 'RT',
+    race: 'Trail Serra dos Pireneus',
+  },
+  {
+    quote:
+      'Adorei poder ver os inscritos confirmados antes da prova. Dá aquela motivação extra para treinar mais forte!',
+    name: 'Ana Luíza M.',
+    initials: 'AL',
+    race: 'Capital Run · 10K',
+  },
+];
+
 export default function Catalog() {
-  const { db } = useApp();
+  const { db, ready } = useApp();
   const [query, setQuery] = useState(''),
     [sport, setSport] = useState(''),
     [state, setState] = useState(''),
@@ -101,6 +199,22 @@ export default function Catalog() {
     setState('');
     setStatus('');
   };
+
+  const featured =
+    db.events.find((e) => e.featured) ||
+    db.events
+      .filter((e) => e.status === 'Inscrições abertas')
+      .sort((a, b) => a.date.localeCompare(b.date))[0];
+  const daysLeft = featured
+    ? Math.max(0, Math.ceil((new Date(featured.date + 'T12:00:00').getTime() - Date.now()) / 86400000))
+    : 0;
+
+  const confirmed = db.registrations.filter((r) => r.status === 'Confirmada');
+  const totalNet = confirmed.reduce((s, r) => s + r.amount - r.fee, 0);
+  const totalUsed = events.reduce((s, e) => s + count(e.id), 0);
+  const totalCapacity = events.reduce((s, e) => s + e.capacity, 0);
+  const recentRegs = confirmed.slice(-3).reverse();
+
   const renderFilters = (prefix: string) => (
     <>
       <div className="filters-title">
@@ -159,6 +273,7 @@ export default function Catalog() {
       </div>
     </>
   );
+
   return (
     <>
       <Header />
@@ -202,20 +317,31 @@ export default function Catalog() {
                 </span>
               </div>
             </div>
-            <Link href="/evento/?id=meia-do-cerrado" className="hero-feature">
-              <span className="hero-feature-label">
-                PRÓXIMA LARGADA EM DESTAQUE
-                <ArrowUpRight size={17} />
-              </span>
-              <strong>Meia do Cerrado</strong>
-              <span>
-                <CalendarDays size={14} />
-                06 dez 2026<span className="dot-separator">·</span>
-                <MapPin size={14} />
-                Unaí, MG
-              </span>
-            </Link>
-            <span className="hero-vertical">NÃO É SÓ SOBRE CORRER. É SOBRE IR.</span>
+            {featured && (
+              <Link href={`/evento/?id=${featured.id}`} className="hero-feature">
+                <span className="hero-feature-label">
+                  PRÓXIMA LARGADA EM DESTAQUE
+                  <ArrowUpRight size={17} />
+                </span>
+                <strong>{featured.name}</strong>
+                <span>
+                  <CalendarDays size={14} />
+                  {daysLeft > 0 ? (
+                    <>
+                      Faltam <b>{daysLeft}</b> dias
+                    </>
+                  ) : (
+                    dateLabel(featured.date, { day: '2-digit', month: 'short', year: 'numeric' })
+                  )}
+                  <span className="dot-separator">·</span>
+                  <MapPin size={14} />
+                  {featured.city}, {featured.state}
+                </span>
+              </Link>
+            )}
+            <span className="hero-vertical" aria-hidden="true">
+              NÃO É SÓ SOBRE CORRER. É SOBRE IR.
+            </span>
           </div>
         </section>
         <div className="trust-strip">
@@ -230,9 +356,8 @@ export default function Catalog() {
               <ShieldCheck size={19} />
               <strong>Inscrição simples.</strong> Do início à largada.
             </span>
-            <span className="demo-inline">
-              <i />
-              Demo interativa
+            <span>
+              <strong>{confirmed.length}+</strong> atletas confirmados
             </span>
           </div>
         </div>
@@ -308,34 +433,89 @@ export default function Catalog() {
               </div>
               {activeFilters && (
                 <div className="active-filters">
-                  {[query, sport, state, status].filter(Boolean).map((f) => (
-                    <span key={f}>{f}</span>
-                  ))}
-                  <button onClick={clear}>
-                    Limpar filtros
-                    <X size={12} />
+                  {query && (
+                    <button className="filter-chip" onClick={() => setQuery('')}>
+                      &ldquo;{query}&rdquo; <X size={11} />
+                    </button>
+                  )}
+                  {sport && (
+                    <button className="filter-chip" onClick={() => setSport('')}>
+                      {sport} <X size={11} />
+                    </button>
+                  )}
+                  {state && (
+                    <button className="filter-chip" onClick={() => setState('')}>
+                      {state} <X size={11} />
+                    </button>
+                  )}
+                  {status && (
+                    <button className="filter-chip" onClick={() => setStatus('')}>
+                      {status} <X size={11} />
+                    </button>
+                  )}
+                  <button className="filter-chip-clear" onClick={clear}>
+                    Limpar tudo <X size={11} />
                   </button>
                 </div>
               )}
-              <div className={`events-grid ${view === 'list' ? 'list-view' : ''}`}>
-                {result.map((e) => (
-                  <EventCard key={e.id} event={e} />
-                ))}
-                {!result.length && (
-                  <EmptyState
-                    action={
-                      <button className="button button-primary" onClick={clear}>
-                        Limpar filtros
-                      </button>
-                    }
-                  />
-                )}
-              </div>
+              {!ready ? (
+                <div className="events-grid">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="event-card">
+                      <div className="skeleton-block" style={{ height: 163 }} />
+                      <div className="event-body">
+                        <div className="skeleton-line" style={{ width: '55%', marginBottom: 14 }} />
+                        <div className="skeleton-line" style={{ width: '85%', marginBottom: 10 }} />
+                        <div className="skeleton-line" style={{ width: '45%' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={`events-grid ${view === 'list' ? 'list-view' : ''}`}>
+                  {result.map((e) => (
+                    <EventCard key={e.id} event={e} used={count(e.id)} />
+                  ))}
+                  {!result.length && (
+                    <EmptyState
+                      action={
+                        <button className="button button-primary" onClick={clear}>
+                          Limpar filtros
+                        </button>
+                      }
+                    />
+                  )}
+                </div>
+              )}
               <div className="catalog-end">
                 <span />
                 Seu próximo ponto de partida está aqui.
                 <span />
               </div>
+            </div>
+          </div>
+        </section>
+        <section className="testimonials-section">
+          <div className="container">
+            <div className="testimonials-heading">
+              <span className="eyebrow">QUEM JÁ CORREU CONTA</span>
+              <h2>A largada é o começo de tudo.</h2>
+              <p>De quem já cruzou a linha de chegada.</p>
+            </div>
+            <div className="testimonials-grid">
+              {testimonials.map((t) => (
+                <div key={t.name} className="testimonial-card">
+                  <p>&ldquo;{t.quote}&rdquo;</p>
+                  <div className="testimonial-author">
+                    <span className="testimonial-avatar">{t.initials}</span>
+                    <div>
+                      <strong>{t.name}</strong>
+                      <span>{t.race}</span>
+                    </div>
+                    <span className="testimonial-stars" aria-hidden="true">★★★★★</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -350,22 +530,35 @@ export default function Catalog() {
               <p>O próximo passo é mais simples do que parece.</p>
             </div>
             <div className="how-steps">
-              {[
-                ['01', 'Encontre a sua prova', 'Explore modalidades, distâncias e novos lugares.'],
+              {(
                 [
-                  '02',
-                  'Garanta seu lugar',
-                  'Escolha seu kit e faça sua inscrição em poucos passos.',
-                ],
-                ['03', 'Prepare-se para viver', 'Acompanhe tudo na sua área. Agora é com você.'],
-              ].map(([n, t, d]) => (
+                  [
+                    '01',
+                    'Encontre a sua prova',
+                    'Explore modalidades, distâncias e novos lugares.',
+                    Compass,
+                  ],
+                  [
+                    '02',
+                    'Garanta seu lugar',
+                    'Escolha seu kit e faça sua inscrição em poucos passos.',
+                    Ticket,
+                  ],
+                  [
+                    '03',
+                    'Prepare-se para viver',
+                    'Acompanhe tudo na sua área. Agora é com você.',
+                    Flag,
+                  ],
+                ] as const
+              ).map(([n, t, d, Icon]) => (
                 <div key={n}>
                   <span>{n}</span>
                   <div>
                     <h3>{t}</h3>
                     <p>{d}</p>
                   </div>
-                  <ArrowUpRight size={20} />
+                  <Icon size={20} />
                 </div>
               ))}
             </div>
@@ -386,12 +579,47 @@ export default function Catalog() {
             </Link>
           </div>
           <div className="org-callout-art">
-            <span>
-              DA IDEIA
-              <br />À <em>LARGADA.</em>
-            </span>
-            <MoveUpRight size={100} strokeWidth={1} />
-            <small>Você organiza. A gente conecta.</small>
+            <div className="org-mini-dash">
+              <div className="org-dash-stats">
+                <div className="org-stat">
+                  <Users size={14} />
+                  <strong>{confirmed.length}</strong>
+                  <span>Atletas inscritos</span>
+                </div>
+                <div className="org-stat">
+                  <TrendingUp size={14} />
+                  <strong>{money(totalNet)}</strong>
+                  <span>Arrecadado</span>
+                </div>
+                <div className="org-stat">
+                  <CheckCircle2 size={14} />
+                  <strong>{totalCapacity - totalUsed}</strong>
+                  <span>Vagas disponíveis</span>
+                </div>
+              </div>
+              <div className="org-dash-recent">
+                <span className="org-dash-label">ÚLTIMAS INSCRIÇÕES</span>
+                {recentRegs.map((r) => (
+                  <div key={r.id} className="org-recent-row">
+                    <span className="org-recent-avatar">
+                      {r.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join('')}
+                    </span>
+                    <div className="org-recent-info">
+                      <strong>{r.name.split(' ').slice(0, 2).join(' ')}</strong>
+                      <span>{r.distance}</span>
+                    </div>
+                    <span className="badge green" style={{ fontSize: 9, padding: '2px 6px' }}>
+                      <span className="status-dot" />
+                      Confirmada
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       </main>
