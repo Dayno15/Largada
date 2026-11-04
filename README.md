@@ -73,6 +73,7 @@ Os campos fora do escopo, como chip e tempos, ficam vazios. Valor líquido corre
 
 - Tokens de marca e overrides: `src/app/globals.css`, no início do arquivo.
 - Estilos de eventos, checkout e painéis: `src/app/experience.css`.
+- Escala dos textos de apoio, menus e formulários (sem alterar títulos): `src/app/typography.css`.
 - Dados fictícios: `src/lib/data.ts`.
 - Modelo de dados: `src/lib/types.ts`.
 - Exportações e colunas: `src/lib/export.ts`.
@@ -99,7 +100,7 @@ NEXT_PUBLIC_BASE_PATH=/corridaqui npm run build
 
 Para `usuario.github.io` na raiz ou domínio próprio, deixe a variável vazia. O caminho é incorporado durante o build; não é uma configuração em tempo de execução.
 
-O workflow **`.github/workflows/pages.yml`** já calcula o caminho do repositório e publica `out/`. Depois de criar seu repositório e fazer push, selecione **Settings → Pages → Source: GitHub Actions**. Nenhum repositório remoto foi criado automaticamente.
+O workflow **`.github/workflows/pages.yml`** já calcula o caminho do repositório e publica `out/` **somente quando acionado manualmente**. Um push não publica o site. Quando quiser disponibilizar a demo, selecione **Settings → Pages → Source: GitHub Actions** e execute **Actions → Publicar demonstração no GitHub Pages → Run workflow**. Repositórios privados podem exigir um plano compatível com GitHub Pages; a visibilidade do site é separada da visibilidade do código.
 
 ### ngrok
 

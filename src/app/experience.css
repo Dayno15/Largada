@@ -667,7 +667,7 @@
   font-size: 10px;
 }
 .signup-link {
-  font-size: 10px !important;
+  font-size: 10px;
   text-align: center;
   margin-top: 20px !important;
 }
@@ -1081,7 +1081,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 9px !important;
+  font-size: 9px;
   color: var(--brand-ink);
   margin-top: 8px;
 }

@@ -573,7 +573,7 @@ img {
   color: var(--brand);
 }
 .demo-inline {
-  font-size: 9px !important;
+  font-size: 9px;
 }
 .demo-inline i {
   width: 5px;

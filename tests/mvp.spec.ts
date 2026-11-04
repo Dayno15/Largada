@@ -47,6 +47,24 @@ test('regras de CPF, idade, categorias, cálculo financeiro e colunas das planil
   expect(exportRows(seed.registrations, 'inscritos').rows[0][10]).toBe('');
 });
 
+test('textos de apoio maiores preservam os títulos em desktop e celular', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('body')).toHaveCSS('font-size', '16px');
+  await expect(page.locator('.hero h1')).toHaveCSS('font-size', '64px');
+  await expect(page.locator('.catalog-heading h2')).toHaveCSS('font-size', '29px');
+  await expect(page.locator('.catalog-heading p')).toHaveCSS('font-size', '14px');
+  await expect(page.locator('.event-card h3').first()).toHaveCSS('font-size', '15px');
+  await expect(page.locator('.event-location').first()).toHaveCSS('font-size', '11px');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.hero h1')).toHaveCSS('font-size', '43px');
+  await expect(page.locator('.catalog-heading h2')).toHaveCSS('font-size', '26px');
+  await expect(page.locator('.event-card h3').first()).toHaveCSS('font-size', '19px');
+  await expect(page.locator('.event-location').first()).toHaveCSS('font-size', '13px');
+  await page.goto('/inscricao/?evento=meia-do-cerrado');
+  await expect(page.getByLabel('Nome completo *', { exact: true })).toHaveCSS('font-size', '16px');
+});
+
 test('catálogo filtra por modalidade, busca sem acentos, estado e status', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.event-card')).toHaveCount(8);
@@ -349,6 +367,9 @@ test('responsividade: páginas públicas e painéis de 320px a desktop', async (
       'financeiro',
       'organizadores',
       'configuracoes',
+      'repasses',
+      'pagamentos',
+      'historico',
     ]) {
       await checkOverflow(`/admin/?aba=${view}`, width);
     }

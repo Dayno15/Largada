@@ -1,0 +1,410 @@
+/* Readability scale for supporting text. Heading and display sizes stay unchanged.
+   Keep these overrides after the component styles so mobile captions do not
+   fall back to the original, overly compact demonstration sizes. */
+:root {
+  --text-caption: 11px;
+  --text-small: 12px;
+  --text-label: 13px;
+  --text-body: 14px;
+  --text-control: 15px;
+  --text-reading: 16px;
+}
+
+:root .hero-eyebrow,
+:root .hero-community > span:last-child,
+:root .hero-feature-label,
+:root .hero-vertical,
+:root .demo-inline,
+:root .filters-title button,
+:root .filter-option small,
+:root .filter-note p,
+:root .image-sport,
+:root .event-date-tile span,
+:root .event-card-status > span:last-child,
+:root .event-card .badge,
+:root .event-location,
+:root .event-card-bottom > div small,
+:root .card-cta,
+:root .active-filters button,
+:root .catalog-end,
+:root .org-callout-art > small,
+:root .footer-bottom,
+:root .demo-notice.compact,
+:root th,
+:root td small,
+:root .stat-card > small,
+:root .catalog-heading .eyebrow,
+:root .how-layout .eyebrow,
+:root .org-callout .eyebrow,
+:root .event-info-strip small,
+:root .location-preview > .button,
+:root .location-preview > small,
+:root .organizer-info small,
+:root .booking-price > span,
+:root .booking-availability,
+:root .booking-availability strong,
+:root .booking-deadline,
+:root .booking-safe strong,
+:root .login-story-copy .hero-eyebrow,
+:root .demo-account-label,
+:root .demo-account p,
+:root .login-security,
+:root .login-form-side > .demo-notice,
+:root .summary-event small,
+:root .summary-event > span > span,
+:root .summary-safe,
+:root .demo-qr > span,
+:root .pix-block small,
+:root .demo-credit-card small,
+:root .demo-credit-card > div,
+:root .coupon-applied,
+:root .coupon-applied > button,
+:root .gateway-control > span,
+:root .workspace-label > div > span,
+:root .nav-section-title,
+:root .workspace-nav button > small,
+:root .sidebar-demo strong,
+:root .sidebar-demo p,
+:root .sidebar-profile > div > span,
+:root .sidebar-profile .avatar,
+:root .workspace-topbar .demo-notice,
+:root .topbar-avatar,
+:root .workspace .page-heading .eyebrow,
+:root .workspace-footer,
+:root .overview-welcome .eyebrow,
+:root .chart-period,
+:root .chart-y-axis,
+:root .chart-bar > span,
+:root .chart-column > span,
+:root .status-donut > div > span,
+:root .donut-legend > div,
+:root .overview-charts .text-link,
+:root .overview-bottom .panel-heading .text-link,
+:root .mini-date > span,
+:root .next-event-row p,
+:root .new-event-inline,
+:root .recent-registrations > div > .avatar,
+:root .recent-registrations small,
+:root .recent-registrations .badge,
+:root .method-row small,
+:root .finance-mini-balance small,
+:root .transfer-summary > div > span,
+:root .managed-event-info .badge,
+:root .managed-event-progress > span,
+:root .editor-tabs button > span,
+:root .distance-editor-head,
+:root .export-columns p,
+:root .registration-detail-top > .badge,
+:root .activity-list p,
+:root .athlete-profile > span:last-child,
+:root .athlete-sidebar nav > button > small,
+:root .athlete-sidebar-note > p,
+:root .athlete-sidebar-note .text-link,
+:root .athlete-ticket-top > .receipt-meta,
+:root .athlete-ticket-top > .badge,
+:root .ticket-footer > strong > small,
+:root .event-detail-content .eyebrow,
+:root .login-form-wrap .eyebrow,
+:root .checkout-header > .eyebrow,
+:root .checkout-layout .panel-heading > .text-link,
+:root .organizer-card-top .badge,
+:root .athlete-page .page-heading .eyebrow,
+:root .athlete-page .page-heading .button,
+:root .athlete-stat-grid .stat-card > small {
+  font-size: var(--text-caption);
+}
+
+:root .eyebrow,
+:root .hero-feature > span:last-child,
+:root .trust-strip span,
+:root .filter-option,
+:root .select-wrap select,
+:root .radio-row,
+:root .filter-note strong,
+:root .results-toolbar > span,
+:root .sort-control,
+:root .sort-control select,
+:root .badge,
+:root .list-view .event-card .badge,
+:root .active-filters,
+:root .how-steps p,
+:root .footer-main p,
+:root .footer-links,
+:root .field small,
+:root .demo-notice,
+:root .avatar,
+:root .pagination,
+:root .pagination button,
+:root .list-row p,
+:root .simple-tag,
+:root .info-grid dt,
+:root .option-card small,
+:root .modal-hint,
+:root .filter-toggle,
+:root .panel-heading .text-link,
+:root .breadcrumb,
+:root .event-detail-title > .image-sport,
+:root .share-button,
+:root .map-label,
+:root .organizer-info span:not(.avatar),
+:root .booking-price small,
+:root .booking-safe span,
+:root .distance-detail p,
+:root .login-story-bottom,
+:root .login-role-tabs button,
+:root .login-method > button,
+:root .demo-account .button,
+:root .signup-link,
+:root .signup-link > button,
+:root .login-form .check-row,
+:root .back-link,
+:root .checkout-steps > div > span,
+:root .summary-distance > span,
+:root .distance-choice > span,
+:root .pix-block .button,
+:root .boleto-payment code,
+:root .coupon-section .button,
+:root .gateway-control select,
+:root .gateway-control .field > span,
+:root .confirmation-ticket > span,
+:root .sidebar-portal,
+:root .sidebar-profile strong,
+:root .workspace-breadcrumb,
+:root .overview-welcome p,
+:root .overview-welcome .text-link,
+:root .recent-registrations strong,
+:root .pending-org-notice small,
+:root .pending-org-notice .button,
+:root .finance-mini-balance > span,
+:root .managed-event-info > p,
+:root .managed-event-actions > .button,
+:root .editor-tabs button,
+:root .editor-cover > label,
+:root .export-columns,
+:root .organizer-card > span,
+:root .organizer-card-bottom,
+:root .settings-row p,
+:root .settings-row .button,
+:root .athlete-sidebar-note > strong,
+:root .athlete-list-heading select,
+:root .athlete-ticket-photo > span,
+:root .athlete-ticket-body > p,
+:root .ticket-attributes > span,
+:root .ticket-footer .button,
+:root .workspace .transfer-summary > div > span,
+:root .athlete-stat-grid .stat-top,
+:root .checkout-layout .form-actions .button,
+:root .confirmation-panel > .button-row > .button,
+:root .workspace-breadcrumb strong,
+:root .overview-charts .panel-heading p,
+:root .overview-bottom .panel-heading p,
+:root .finance-toolbar > .filter-label,
+:root .finance-toolbar > .button,
+:root .confirmation-panel > .info-message,
+:root .workspace .panel-heading .button,
+:root .organizer-card-bottom .button,
+:root .organizer-card-bottom .text-link {
+  font-size: var(--text-small);
+}
+
+:root .catalog-search input,
+:root .catalog-filters,
+:root .filters-title,
+:root .list-view .event-card-status > span:last-child,
+:root .how-layout > div > p,
+:root .org-callout .button,
+:root .panel-heading p,
+:root .field > span,
+:root .check-row,
+:root .info-message,
+:root .accent-picker,
+:root .search-box input,
+:root table,
+:root td strong,
+:root .toolbar select,
+:root .stat-top,
+:root .modal-actions .button,
+:root .button-row .button,
+:root .event-detail-layout .tabs button,
+:root .benefits-grid > span,
+:root .event-booking .panel > p,
+:root .booking-distances span,
+:root .kit-option p,
+:root .kit-option strong,
+:root .login-back,
+:root .login-form .field > span,
+:root .checkout-steps strong,
+:root .checkout-summary .detail-list > div,
+:root .category-value,
+:root .payment-methods > button,
+:root .pix-block p,
+:root .boleto-payment p,
+:root .coupon-section > label,
+:root .coupon-section input,
+:root .confirmation-ticket > div,
+:root .workspace-label strong,
+:root .workspace-nav button,
+:root .workspace .page-heading p,
+:root .workspace .page-heading .button,
+:root .donut-legend strong,
+:root .pending-org-notice strong,
+:root .filter-label,
+:root .finance-toolbar > select,
+:root .finance-toolbar .button,
+:root .method-row > div:first-child,
+:root .method-row strong,
+:root .registration-detail-top p,
+:root .organizer-card p,
+:root .activity-list strong,
+:root .athlete-sidebar nav > button,
+:root .athlete-page .page-heading p {
+  font-size: var(--text-label);
+}
+
+:root .button-small,
+:root .text-link,
+:root .main-nav,
+:root .account-button,
+:root .hero .button,
+:root .trust-strip strong,
+:root .catalog-heading p,
+:root .list-view .event-location,
+:root .org-callout p,
+:root .page-heading p,
+:root .field,
+:root .field input,
+:root .field select,
+:root .error-message,
+:root .toast,
+:root .empty-state p,
+:root .loading-state,
+:root .tabs button,
+:root .detail-list > div,
+:root .receipt-meta,
+:root .section-description,
+:root .info-grid dd,
+:root .option-card,
+:root .rules-copy p,
+:root .login-form-wrap > p,
+:root .login-form .field input,
+:root .checkout-header > p,
+:root .distance-choice strong,
+:root .confirmation-panel > p,
+:root .distance-editor-row input,
+:root .filter-drawer-modal .filter-option,
+:root .filter-drawer-modal .radio-row {
+  font-size: var(--text-body);
+}
+
+:root .button,
+:root .main-nav > a,
+:root .main-nav .organizer-link,
+:root .event-detail-title p,
+:root .event-detail-content > p,
+:root .login-story-copy > p,
+:root .checkout-summary .detail-list .total {
+  font-size: var(--text-control);
+}
+
+:root body,
+:root .hero-copy > p {
+  font-size: var(--text-reading);
+}
+
+/* Let dense controls breathe instead of squeezing the larger copy. */
+:root .event-card-status,
+:root .booking-availability,
+:root .demo-account .button,
+:root .sidebar-demo,
+:root .workspace-label {
+  min-width: 0;
+}
+
+:root .event-card-status {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+@media (max-width: 760px) {
+  :root .login-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  :root .login-form-side,
+  :root .chart-bars,
+  :root .chart-column {
+    min-width: 0;
+  }
+
+  :root .chart-bars {
+    gap: clamp(4px, 1.5vw, 10px);
+  }
+
+  :root .workspace-topbar > div:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :root .workspace-topbar > div:last-child {
+    flex-shrink: 0;
+  }
+
+  :root .workspace-breadcrumb,
+  :root .workspace-breadcrumb strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :root .catalog-search input,
+  :root .event-location,
+  :root .card-cta {
+    font-size: var(--text-label);
+  }
+
+  :root .field input,
+  :root .field select,
+  :root .field textarea,
+  :root .login-form .field input,
+  :root .gateway-control select {
+    font-size: var(--text-reading);
+  }
+
+  :root .checkout-steps > div {
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+
+  :root .checkout-steps > div::after {
+    display: none;
+  }
+
+  :root .sidebar-profile > div,
+  :root .workspace-label > div {
+    min-width: 0;
+  }
+
+  :root .toolbar,
+  :root .heading-actions,
+  :root .ticket-footer {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  :root .login-role-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  :root .login-role-tabs button {
+    min-width: 0;
+    flex-direction: column;
+    gap: 7px;
+    padding: 10px 2px;
+    font-size: var(--text-caption);
+  }
+}
