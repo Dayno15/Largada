@@ -4715,3 +4715,9 @@
 .dev-notice {
   margin-bottom: 16px;
 }
+
+/* Linha com e-mail e senha da conta demo, abaixo do aviso de que ela não é real. */
+:root .demo-account .demo-account-credentials {
+  color: var(--text);
+  font-weight: 600;
+}

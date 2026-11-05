@@ -60,20 +60,22 @@ const stories = {
   },
 };
 const visibleRoles = ['atleta', 'organizador'] as const;
+// Credenciais da demo: o formulário de login já abre preenchido com elas.
+const demo = { password: 'demo123', cpf: '529.982.247-25', code: '123456' };
 export default function Login() {
   const params = useSearchParams(),
     router = useRouter();
   const requested = params.get('perfil');
-  const [role, setRole] = useState<Role>(
-    requested === 'admin' ? 'admin' : requested === 'organizador' ? 'organizador' : 'atleta',
-  );
-  const [email, setEmail] = useState(''),
-    [password, setPassword] = useState(''),
+  const initialRole: Role =
+    requested === 'admin' ? 'admin' : requested === 'organizador' ? 'organizador' : 'atleta';
+  const [role, setRole] = useState<Role>(initialRole);
+  const [email, setEmail] = useState(accounts[initialRole].email),
+    [password, setPassword] = useState(demo.password),
     [show, setShow] = useState(false),
     [error, setError] = useState(''),
     [mode, setMode] = useState('email'),
-    [cpf, setCpf] = useState(''),
-    [code, setCode] = useState(''),
+    [cpf, setCpf] = useState(demo.cpf),
+    [code, setCode] = useState(demo.code),
     [sent, setSent] = useState(false),
     [signup, setSignup] = useState(false),
     [name, setName] = useState(''),
@@ -81,8 +83,10 @@ export default function Login() {
   const { login, db, update, toast } = useApp();
   function changeRole(r: Role) {
     setRole(r);
-    setEmail('');
-    setPassword('');
+    setEmail(accounts[r].email);
+    setPassword(demo.password);
+    setCpf(demo.cpf);
+    setCode(demo.code);
     setError('');
     setSignup(false);
     setMode('email');
@@ -165,8 +169,9 @@ export default function Login() {
   const story = stories[storyKey];
   function fill() {
     setEmail(accounts[role].email);
-    setPassword('demo123');
-    setCpf('529.982.247-25');
+    setPassword(demo.password);
+    setCpf(demo.cpf);
+    setCode(demo.code);
     setName('Marina Oliveira');
     setError('');
   }
@@ -403,8 +408,12 @@ export default function Login() {
           <div key={`demo-${role}`} className="demo-account login-swap">
             <div>
               <span className="demo-account-label">CONTA DE DEMONSTRAÇÃO</span>
-              <strong>Uma conta pronta para testar.</strong>
+              <strong>Esta conta não é real.</strong>
               <p>
+                O login também é demonstrativo: os dados já vêm preenchidos e nada é verificado em
+                servidor.
+              </p>
+              <p className="demo-account-credentials">
                 {mode === 'cpf'
                   ? 'CPF: 529.982.247-25 · Código: 123456'
                   : `${accounts[role].email} · Senha: demo123`}
@@ -420,9 +429,13 @@ export default function Login() {
               {signup ? 'Já tem um perfil?' : 'Ainda não tem um perfil?'}{' '}
               <button
                 onClick={() => {
-                  setSignup(!signup);
+                  const toSignup = !signup;
+                  setSignup(toSignup);
                   setMode('email');
                   setError('');
+                  setEmail(toSignup ? '' : accounts[role].email);
+                  setPassword(toSignup ? '' : demo.password);
+                  setCpf(toSignup ? '' : demo.cpf);
                 }}
               >
                 {signup ? 'Entrar na conta' : 'Criar conta'}
