@@ -22,7 +22,7 @@ async function prepareRegistration(page: Page, event = 'meia-do-cerrado') {
   await expect(page.getByRole('heading', { name: 'Como prefere pagar?' })).toBeVisible();
 }
 async function readDb(page: Page) {
-  return page.evaluate(() => JSON.parse(localStorage.getItem('corridaqui-demo-v1') || '{}'));
+  return page.evaluate(() => JSON.parse(localStorage.getItem('corridaqui-demo-v2') || '{}'));
 }
 
 test('regras de CPF, idade, categorias, cálculo financeiro e colunas das planilhas', () => {
@@ -109,7 +109,7 @@ test('login rejeita acesso inválido e separa as áreas por perfil', async ({ pa
   );
   await page.getByRole('button', { name: 'Preencher acesso' }).click();
   await page.getByRole('button', { name: 'Entrar como administrador' }).click();
-  await expect(page.getByRole('heading', { name: 'A operação em um só lugar.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Visão geral da plataforma.' })).toBeVisible();
   await page.goto('/organizador/');
   await expect(page).toHaveURL(/entrar\/\?perfil=organizador/);
 });
@@ -125,8 +125,60 @@ test('consulta do atleta por CPF e código inteiramente simulado', async ({ page
   await page.getByLabel('Código de acesso').fill('123456');
   await page.getByRole('button', { name: 'Entrar como atleta' }).click();
   await expect(page).toHaveURL(/atleta/);
-  await expect(page.locator('.athlete-ticket')).toHaveCount(1);
-  await expect(page.locator('.athlete-ticket h3')).toHaveText('Meia do Cerrado');
+  await expect(page.locator('.athlete-ticket h3')).toHaveText([
+    'Meia do Cerrado',
+    'Corrida do Parque',
+  ]);
+});
+
+test('login troca atleta/organizador e tema sem duplicar o formulário', async ({ page }) => {
+  await page.goto('/entrar/?perfil=atleta');
+  await page.getByRole('tab', { name: 'Organizador' }).click();
+  await page.getByRole('button', { name: 'Ativar tema escuro' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.getByRole('tab', { name: 'Atleta' }).click();
+  await page.getByRole('button', { name: 'Ativar tema claro' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('form.login-form')).toHaveCount(1);
+  await expect(page.locator('.demo-account')).toHaveCount(1);
+});
+
+test('depoimento só para prova já corrida e não vai para a home sem aprovação', async ({
+  page,
+}) => {
+  await page.goto('/entrar/?perfil=atleta');
+  await expect(page.getByRole('tab')).toHaveText(['Atleta', 'Organizador']);
+  await login(page, 'atleta');
+  const past = page.locator('.athlete-ticket').filter({ hasText: 'Corrida do Parque' });
+  const future = page.locator('.athlete-ticket').filter({ hasText: 'Meia do Cerrado' });
+  await expect(future.getByRole('button', { name: 'Deixar depoimento' })).toHaveCount(0);
+  await past.getByRole('button', { name: 'Deixar depoimento' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Seu depoimento').fill('Curto');
+  await dialog.getByRole('button', { name: 'Enviar depoimento' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('20 caracteres');
+  const text = 'Prova bem organizada, kit retirado sem fila e percurso sinalizado.';
+  await dialog.getByLabel('Seu depoimento').fill(text);
+  await dialog.getByRole('button', { name: 'Enviar depoimento' }).click();
+  await expect(past).toContainText('Depoimento enviado');
+  await page.goto('/');
+  await expect(page.locator('.testimonials-track')).toBeVisible();
+  await expect(page.locator('.testimonials-track')).not.toContainText(text);
+  await login(page, 'admin');
+  // Depoimentos abre para ver, mas as ações ficam em desenvolvimento.
+  const navItem = page.locator('.workspace-nav button').filter({ hasText: 'Depoimentos' });
+  await expect(navItem).toHaveAttribute('data-tooltip', 'Em desenvolvimento');
+  await navItem.click();
+  await expect(page.locator('main h1')).toHaveText('Depoimentos');
+  await expect(page.locator('.dev-notice')).toContainText('Em desenvolvimento');
+  const item = page.locator('.testimonial-admin-item').filter({ hasText: text });
+  await expect(item.locator('.badge')).toHaveText('Oculto');
+  const show = item.getByRole('button', { name: 'Mostrar no site' });
+  await expect(show).toHaveAttribute('aria-disabled', 'true');
+  await show.click({ force: true });
+  await expect(item.locator('.badge')).toHaveText('Oculto');
+  await page.goto('/');
+  await expect(page.locator('.testimonials-track')).not.toContainText(text);
 });
 
 test('cadastro local cria perfil e preserva dados editados', async ({ page }) => {
@@ -138,9 +190,7 @@ test('cadastro local cria perfil e preserva dados editados', async ({ page }) =>
   await page.getByRole('checkbox').check();
   await page.getByRole('button', { name: 'Criar perfil demonstrativo' }).click();
   await expect(page.locator('main h1')).toContainText('Alex');
-  await expect(
-    page.getByRole('heading', { name: 'Sua próxima história começa aqui' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Você ainda não tem inscrições' })).toBeVisible();
   await page.getByRole('button', { name: 'Meus dados', exact: true }).click();
   await page.getByLabel('Cidade', { exact: true }).fill('Paracatu');
   await page.getByRole('button', { name: 'Salvar meus dados' }).click();
@@ -170,7 +220,7 @@ test('inscrição completa com kit, cupom, cartão parcelado, recusa e aprovaç�
   await expect(page.locator('.error-message[role="alert"]')).toContainText('Pagamento recusado');
   await page.getByLabel('Resultado do pagamento simulado').selectOption('success');
   await page.getByRole('button', { name: /Simular pagamento de/ }).click();
-  await expect(page.locator('.checkout-header h1')).toHaveText('Seu lugar está garantido.');
+  await expect(page.locator('.checkout-header h1')).toHaveText('Inscrição confirmada.');
   const db = await readDb(page);
   const reg = db.registrations.find((r: { email: string }) => r.email === 'alex@exemplo.test');
   expect(reg.status).toBe('Confirmada');
@@ -286,24 +336,42 @@ test('exportações reais Excel e CSV mantêm as colunas e filtros dos modelos',
   expect(csv.split('\r\n')).toHaveLength(expected + 1);
 });
 
-test('admin aprova organizador, agenda repasse e simula recebimento', async ({ page }) => {
+test('admin aprova organizador; Atividades e Repasses ficam em desenvolvimento', async ({
+  page,
+}) => {
   await login(page, 'admin');
   await page.goto('/admin/?aba=organizadores');
   const organizer = page.locator('.organizer-card').filter({ hasText: 'Rota Livre' });
   await organizer.getByRole('button', { name: 'Aprovar cadastro' }).click();
   await expect(organizer.locator('.badge')).toHaveText('Aprovado');
-  await page.goto('/admin/?aba=repasses');
-  await page.getByRole('button', { name: 'Programar repasse', exact: true }).click();
-  const modal = page.getByRole('dialog');
-  await modal.getByLabel('Evento', { exact: true }).selectOption('meia-do-cerrado');
-  await modal.getByLabel('Valor (R$)').fill('500');
-  await modal.getByRole('button', { name: 'Confirmar simulação' }).click();
-  const row = page.locator('tbody tr').filter({ hasText: 'R$ 500,00' });
-  await expect(row.locator('.badge')).toHaveText('Programado');
-  await row.getByRole('button', { name: 'Simular recebimento' }).click();
-  await expect(row.locator('.badge')).toHaveText('Recebido');
-  await page.goto('/admin/?aba=historico');
-  await expect(page.locator('.activity-list')).toContainText('marcado como recebido');
+  // Aparecem no menu, apagados e com aviso, mas não abrem (src/lib/features.ts).
+  for (const label of ['Atividades', 'Repasses']) {
+    const item = page.locator('.workspace-nav button').filter({ hasText: label });
+    await expect(item).toHaveAttribute('aria-disabled', 'true');
+    await expect(item).toHaveAttribute('data-tooltip', 'Em desenvolvimento');
+    await item.click({ force: true });
+    await expect(page.locator('main h1')).toHaveText('Organizadores');
+  }
+  for (const aba of ['historico', 'repasses']) {
+    await page.goto(`/admin/?aba=${aba}`);
+    await expect(page.locator('main h1')).toHaveText('Visão geral');
+  }
+  // Sem atalho para repasses pelo Financeiro.
+  await page.goto('/admin/?aba=financeiro');
+  await expect(page.locator('main h1')).toHaveText('Financeiro');
+  await expect(page.getByRole('button', { name: 'Programar repasse' })).toHaveCount(0);
+  // O registro de atividades continua por trás.
+  const db = await readDb(page);
+  expect(db.activities.some((a: { text: string }) => a.text.includes('Rota Livre aprovado'))).toBe(
+    true,
+  );
+  // A paleta da marca nas configurações do admin.
+  await page.goto('/admin/?aba=configuracoes');
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'blue');
+  await page.getByRole('button', { name: 'Cor terracota', exact: true }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'terra');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'terra');
 });
 
 test('cupons do organizador aparecem no checkout, tema e cor persistem', async ({ page }) => {
@@ -316,13 +384,14 @@ test('cupons do organizador aparecem no checkout, tema e cor persistem', async (
   await modal.getByRole('button', { name: 'Criar cupom', exact: true }).click();
   await expect(page.locator('tbody')).toContainText('APRESENTACAO');
   await page.goto('/organizador/?aba=perfil');
-  await page.getByRole('button', { name: 'Cor azul', exact: true }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'blue');
+  await page.getByRole('button', { name: 'Cor terracota', exact: true }).click();
   await page.getByRole('button', { name: 'Alternar tema', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('html')).toHaveAttribute('data-accent', 'blue');
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'terra');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('html')).toHaveAttribute('data-accent', 'blue');
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'terra');
   await page.goto('/inscricao/?evento=meia-do-cerrado');
   await page.getByRole('button', { name: 'Preencher exemplo' }).click();
   await page.getByRole('checkbox').check();

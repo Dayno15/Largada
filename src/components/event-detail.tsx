@@ -26,6 +26,7 @@ import { DemoNotice, useApp } from './provider';
 import { Badge, EmptyState, Panel, SportIcon, Modal } from './ui';
 import { asset, dateLabel, daysUntil, money, shortDate } from '@/lib/utils';
 import type { Registration } from '@/lib/types';
+import { features } from '@/lib/features';
 
 const faqItems = [
   {
@@ -65,7 +66,7 @@ export default function EventDetail() {
     if (!eventName) return;
     document.title = `${eventName} | CorridaAqui`;
     return () => {
-      document.title = 'CorridaAqui — Seu próximo ponto de partida';
+      document.title = 'CorridaAqui · Eventos esportivos';
     };
   }, [eventName]);
   if (!event)
@@ -138,10 +139,12 @@ export default function EventDetail() {
             <h1>{event.name}</h1>
             <p>{event.subtitle}</p>
           </div>
-          <button className="share-button" onClick={share}>
-            <Share2 size={16} />
-            <span>Compartilhar</span>
-          </button>
+          {features.share && (
+            <button className="share-button" onClick={share}>
+              <Share2 size={16} />
+              <span>Compartilhar</span>
+            </button>
+          )}
         </div>
         <div className="event-detail-layout">
           <div>
@@ -268,7 +271,7 @@ export default function EventDetail() {
                       <ExternalLink size={13} />
                     </a>
                   </div>
-                  {(event.whatsapp || event.strava) && (
+                  {features.eventLinks && (event.whatsapp || event.strava) && (
                     <div className="event-links">
                       {event.whatsapp && (
                         <a
@@ -359,10 +362,7 @@ export default function EventDetail() {
               {tab === 'Resultados' && event.results && (
                 <>
                   <h2>Resultados oficiais.</h2>
-                  <p>
-                    Classificação final por distância. Os tempos são demonstrativos e servem como
-                    referência para a experiência da plataforma.
-                  </p>
+                  <p>Classificação final por distância. Os tempos são fictícios.</p>
                   <div className="table-wrap">
                     <table>
                       <thead>
@@ -423,8 +423,7 @@ export default function EventDetail() {
                 <>
                   <h2>Antes da largada.</h2>
                   <p>
-                    Leia as condições de participação. Este é um regulamento ilustrativo, válido
-                    somente para a experiência demonstrativa.
+                    Leia as condições de participação. Regulamento ilustrativo, sem validade real.
                   </p>
                   <div className="rules-copy">
                     <h3>1. Participação</h3>
@@ -526,13 +525,15 @@ export default function EventDetail() {
                   Inscrições encerradas
                 </button>
               )}
-              <button
-                className="button button-ghost full-width"
-                style={{ fontSize: 11 }}
-                onClick={() => setFindModal(true)}
-              >
-                Já tenho inscrição — consultar
-              </button>
+              {features.quickLookup && (
+                <button
+                  className="button button-ghost full-width"
+                  style={{ fontSize: 11 }}
+                  onClick={() => setFindModal(true)}
+                >
+                  Já tenho inscrição — consultar
+                </button>
+              )}
               <div className="booking-deadline">
                 <CalendarDays size={14} />
                 {event.status === 'Em breve' && event.registrationStart

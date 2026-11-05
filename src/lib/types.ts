@@ -112,6 +112,16 @@ export interface Activity {
   date: string;
   actor: string;
 }
+export interface Testimonial {
+  id: string;
+  registrationId: string;
+  eventId: string;
+  name: string;
+  text: string;
+  createdAt: string;
+  /** Só aparece na página inicial quando a administração libera. */
+  visible: boolean;
+}
 export interface Session {
   role: Role;
   name: string;
@@ -127,6 +137,7 @@ export interface Database {
   transfers: Transfer[];
   coupons: Coupon[];
   activities: Activity[];
+  testimonials: Testimonial[];
   profile: Athlete;
   settings: { platformName: string; email: string; fee: number; pix: string };
 }

@@ -1,4 +1,12 @@
-import type { Athlete, Database, EventResult, RaceEvent, Registration, Sport } from './types';
+import type {
+  Athlete,
+  Database,
+  EventResult,
+  RaceEvent,
+  Registration,
+  Sport,
+  Testimonial,
+} from './types';
 import { categoryFor } from './utils';
 
 export const demoProfile: Athlete = {
@@ -29,7 +37,7 @@ export const seedEvents: RaceEvent[] = [
     ...common,
     id: 'meia-do-cerrado',
     name: 'Meia do Cerrado',
-    subtitle: 'Uma nova distância. A sua melhor versão.',
+    subtitle: '5, 10 e 21 km pelas ruas de Unaí.',
     sport: 'Corrida de Rua',
     date: '2026-12-06',
     city: 'Unaí',
@@ -45,7 +53,7 @@ export const seedEvents: RaceEvent[] = [
     ],
     capacity: 500,
     description:
-      'O cerrado é o nosso ponto de partida. Uma manhã para correr pelas ruas de Unaí, encontrar sua comunidade e descobrir até onde você pode chegar. Percurso sinalizado, pontos de hidratação e uma arena preparada para receber atletas e famílias. Escolha sua distância e venha fazer parte desta história.',
+      'Corrida de rua pelas ruas de Unaí, com percursos de 5, 10 e 21 km. Percurso sinalizado, pontos de hidratação e arena com estrutura para atletas e famílias.',
     registrationEnd: '2026-12-01',
     whatsapp: 'https://wa.me/5538999990001',
     featured: true,
@@ -54,7 +62,7 @@ export const seedEvents: RaceEvent[] = [
     ...common,
     id: 'trail-serra-dos-pireneus',
     name: 'Trail Serra dos Pireneus',
-    subtitle: 'Troque o asfalto por novos horizontes.',
+    subtitle: 'Trilha com percursos para iniciantes e experientes.',
     sport: 'Trail Run',
     date: '2026-12-13',
     city: 'Pirenópolis',
@@ -69,7 +77,7 @@ export const seedEvents: RaceEvent[] = [
     ],
     capacity: 300,
     description:
-      'Entre trilhas e montanhas, uma experiência de conexão com a natureza. Percursos de diferentes níveis, apoio ao atleta e vistas que fazem cada subida valer a pena.',
+      'Corrida em trilha na Serra dos Pireneus, com percursos de diferentes níveis, pontos de apoio e hidratação.',
     registrationEnd: '2026-12-08',
     whatsapp: 'https://wa.me/5562999990002',
     strava: 'https://www.strava.com/routes/3215467890',
@@ -78,7 +86,7 @@ export const seedEvents: RaceEvent[] = [
     ...common,
     id: 'pedal-das-aguas',
     name: 'Desafio Pedal das Águas',
-    subtitle: 'O caminho fica melhor em boa companhia.',
+    subtitle: 'MTB em estradas de terra, 30 e 60 km.',
     sport: 'MTB',
     date: '2026-12-20',
     city: 'Paracatu',
@@ -93,14 +101,14 @@ export const seedEvents: RaceEvent[] = [
     ],
     capacity: 250,
     description:
-      'Estradas de terra, paisagens abertas e muita parceria. O Desafio Pedal das Águas reúne iniciantes e ciclistas experientes em uma jornada pelo interior mineiro.',
+      'Prova de MTB em estradas de terra no interior mineiro, com percursos de 30 e 60 km para iniciantes e ciclistas experientes.',
     registrationEnd: '2026-12-15',
   },
   {
     ...common,
     id: 'capital-run',
     name: 'Capital Run · Edição amanhecer',
-    subtitle: 'A cidade é nossa pista.',
+    subtitle: 'Percurso plano no Parque da Cidade.',
     sport: 'Corrida de Rua',
     date: '2027-01-10',
     city: 'Brasília',
@@ -115,14 +123,14 @@ export const seedEvents: RaceEvent[] = [
     ],
     capacity: 600,
     description:
-      'Brasília acorda em movimento. Um percurso plano no Parque da Cidade, ideal para sua primeira prova ou para buscar um novo desafio pessoal.',
+      'Corrida de rua de 5 e 10 km em percurso plano no Parque da Cidade, em Brasília. Boa opção para a primeira prova.',
     registrationEnd: '2027-01-05',
   },
   {
     ...common,
     id: 'giro-do-lago',
     name: 'Giro do Lago',
-    subtitle: 'Um percurso para ir além.',
+    subtitle: 'Ciclismo de estrada com percurso de até 100 km.',
     sport: 'Ciclismo',
     date: '2027-01-17',
     city: 'Goiânia',
@@ -137,7 +145,7 @@ export const seedEvents: RaceEvent[] = [
     ],
     capacity: 300,
     description:
-      'Um encontro para quem vive sobre duas rodas. Percurso de estrada com apoio, hidratação e estrutura de chegada.',
+      'Prova de ciclismo de estrada com apoio, pontos de hidratação e estrutura de chegada.',
     registrationEnd: '2027-01-12',
     registrationStart: '2026-11-20',
     whatsapp: 'https://wa.me/5562999990003',
@@ -146,7 +154,7 @@ export const seedEvents: RaceEvent[] = [
     ...common,
     id: 'triathlon-verao',
     name: 'Triathlon de Verão',
-    subtitle: 'Três modalidades. Um só propósito.',
+    subtitle: 'Natação, ciclismo e corrida no mesmo dia.',
     sport: 'Triathlon',
     date: '2027-01-24',
     city: 'Belo Horizonte',
@@ -161,7 +169,7 @@ export const seedEvents: RaceEvent[] = [
     ],
     capacity: 300,
     description:
-      'Nade, pedale e corra em uma experiência completa. Uma arena pensada para acolher novos triatletas e quem já faz do esporte seu estilo de vida.',
+      'Triathlon com natação, ciclismo e corrida, nas distâncias sprint e olímpica. Área de transição organizada e apoio para quem vai fazer a primeira prova.',
     registrationEnd: '2027-01-19',
     registrationStart: '2026-12-01',
     whatsapp: 'https://wa.me/5531999990004',
@@ -170,7 +178,7 @@ export const seedEvents: RaceEvent[] = [
     ...common,
     id: 'volta-da-primavera',
     name: 'Volta da Primavera',
-    subtitle: 'Cada passo tem uma história.',
+    subtitle: 'Corrida de primavera no Parque do Sabiá.',
     sport: 'Corrida de Rua',
     date: '2026-11-22',
     city: 'Uberlândia',
@@ -185,14 +193,14 @@ export const seedEvents: RaceEvent[] = [
     ],
     capacity: 500,
     description:
-      'Uma corrida para celebrar os dias mais longos e a energia da primavera. Venha com a família e encontre seu ritmo no Parque do Sabiá.',
+      'Corrida de rua de primavera no Parque do Sabiá, com percursos de 5 e 10 km e opção para ir com a família.',
     registrationEnd: '2026-11-18',
   },
   {
     ...common,
     id: 'corrida-do-parque',
     name: 'Corrida do Parque',
-    subtitle: 'O primeiro passo é aparecer.',
+    subtitle: '5 km no Parque Villa-Lobos.',
     sport: 'Corrida de Rua',
     date: '2026-10-25',
     city: 'São Paulo',
@@ -203,20 +211,89 @@ export const seedEvents: RaceEvent[] = [
     organizerId: 'org-2',
     distances: [{ name: '5 km', price: 79, capacity: 400 }],
     capacity: 400,
-    description:
-      'Uma manhã de encontro e movimento no parque. Esta edição já encerrou suas inscrições.',
+    description: 'Corrida de 5 km no Parque Villa-Lobos. Esta edição já encerrou as inscrições.',
     registrationEnd: '2026-10-20',
     results: [
-      { pos: 1, name: 'Rafael Costa', distance: '5 km', category: 'M 30-39', time: '00:17:42', pace: '03:32/km' },
-      { pos: 2, name: 'Lucas Martins', distance: '5 km', category: 'M 20-29', time: '00:18:05', pace: '03:37/km' },
-      { pos: 3, name: 'Gabriel Araújo', distance: '5 km', category: 'M 20-29', time: '00:18:31', pace: '03:42/km' },
-      { pos: 4, name: 'Fernanda Dias', distance: '5 km', category: 'F 30-39', time: '00:19:14', pace: '03:51/km' },
-      { pos: 5, name: 'Carolina Ramos', distance: '5 km', category: 'F 20-29', time: '00:20:03', pace: '04:01/km' },
-      { pos: 6, name: 'Thiago Barbosa', distance: '5 km', category: 'M 40-49', time: '00:20:45', pace: '04:09/km' },
-      { pos: 7, name: 'Isabela Mendes', distance: '5 km', category: 'F 20-29', time: '00:21:18', pace: '04:16/km' },
-      { pos: 8, name: 'Vinícius Melo', distance: '5 km', category: 'M 20-29', time: '00:21:52', pace: '04:22/km' },
-      { pos: 9, name: 'Bianca Teixeira', distance: '5 km', category: 'F 30-39', time: '00:22:30', pace: '04:30/km' },
-      { pos: 10, name: 'André Nascimento', distance: '5 km', category: 'M 50-59', time: '00:23:07', pace: '04:37/km' },
+      {
+        pos: 1,
+        name: 'Rafael Costa',
+        distance: '5 km',
+        category: 'M 30-39',
+        time: '00:17:42',
+        pace: '03:32/km',
+      },
+      {
+        pos: 2,
+        name: 'Lucas Martins',
+        distance: '5 km',
+        category: 'M 20-29',
+        time: '00:18:05',
+        pace: '03:37/km',
+      },
+      {
+        pos: 3,
+        name: 'Gabriel Araújo',
+        distance: '5 km',
+        category: 'M 20-29',
+        time: '00:18:31',
+        pace: '03:42/km',
+      },
+      {
+        pos: 4,
+        name: 'Fernanda Dias',
+        distance: '5 km',
+        category: 'F 30-39',
+        time: '00:19:14',
+        pace: '03:51/km',
+      },
+      {
+        pos: 5,
+        name: 'Carolina Ramos',
+        distance: '5 km',
+        category: 'F 20-29',
+        time: '00:20:03',
+        pace: '04:01/km',
+      },
+      {
+        pos: 6,
+        name: 'Thiago Barbosa',
+        distance: '5 km',
+        category: 'M 40-49',
+        time: '00:20:45',
+        pace: '04:09/km',
+      },
+      {
+        pos: 7,
+        name: 'Isabela Mendes',
+        distance: '5 km',
+        category: 'F 20-29',
+        time: '00:21:18',
+        pace: '04:16/km',
+      },
+      {
+        pos: 8,
+        name: 'Vinícius Melo',
+        distance: '5 km',
+        category: 'M 20-29',
+        time: '00:21:52',
+        pace: '04:22/km',
+      },
+      {
+        pos: 9,
+        name: 'Bianca Teixeira',
+        distance: '5 km',
+        category: 'F 30-39',
+        time: '00:22:30',
+        pace: '04:30/km',
+      },
+      {
+        pos: 10,
+        name: 'André Nascimento',
+        distance: '5 km',
+        category: 'M 50-59',
+        time: '00:23:07',
+        pace: '04:37/km',
+      },
     ] as EventResult[],
   },
 ];
@@ -315,10 +392,61 @@ export function createSeed(): Database {
     kitDelivered: false,
     installments: 1,
   });
+  // Prova que a atleta demo já correu: libera o botão de depoimento na área dela.
+  registrations.push({
+    ...demoProfile,
+    id: 'CA-0999',
+    eventId: 'corrida-do-parque',
+    distance: '5 km',
+    category: categoryFor(demoProfile.birth, demoProfile.sex, '2026-10-25'),
+    shirt: 'M',
+    kit: 'Essencial',
+    kitExtra: 0,
+    partner: '',
+    notes: '',
+    status: 'Confirmada',
+    method: 'PIX',
+    amount: 85.32,
+    fee: 6.32,
+    discount: 0,
+    coupon: '',
+    createdAt: '2026-10-02T19:10:00',
+    paidAt: '2026-10-02',
+    bib: '99',
+    kitDelivered: true,
+    installments: 1,
+  });
+  const quotes = [
+    'Primeira prova da minha vida. Fiz a inscrição pelo celular e o QR Code agilizou a retirada do kit.',
+    'Percurso plano, bem sinalizado e com água no meio do caminho. Fechei os 5 km abaixo de 30 minutos.',
+    'Retirei o kit na véspera sem fila. O resultado saiu no mesmo dia na página do evento.',
+  ];
+  // Um autor por primeiro nome, para não repetir "Larissa L." e "Larissa S." na faixa.
+  const firstNames = new Set<string>();
+  const testimonials: Testimonial[] = registrations
+    .filter((r) => {
+      const first = r.name.split(' ')[0];
+      if (r.eventId !== 'corrida-do-parque' || r.status !== 'Confirmada' || r.id === 'CA-0999')
+        return false;
+      if (firstNames.has(first)) return false;
+      firstNames.add(first);
+      return true;
+    })
+    .slice(0, quotes.length)
+    .map((r, i) => ({
+      id: `dep-${i + 1}`,
+      registrationId: r.id,
+      eventId: r.eventId,
+      name: r.name,
+      text: quotes[i],
+      createdAt: `2026-10-${26 + i}T10:00:00`,
+      visible: true,
+    }));
   return {
-    version: 1,
+    version: 2,
     events: seedEvents,
     registrations,
+    testimonials,
     profile: demoProfile,
     organizers: [
       {

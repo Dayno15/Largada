@@ -12,6 +12,7 @@ import {
   Download,
   LogOut,
   MapPin,
+  MessageSquareQuote,
   PackageCheck,
   Save,
   Settings2,
@@ -25,9 +26,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Header, Footer, AccentPicker } from './navigation';
 import { DemoNotice, useApp } from './provider';
 import { Badge, EmptyState, Field, Modal, PageHeading, Panel, Stat } from './ui';
-import { asset, dateLabel, money, states } from '@/lib/utils';
+import { asset, dateLabel, eventPassed, money, states, uid } from '@/lib/utils';
 import { downloadReceipt } from '@/lib/export';
 import type { Registration } from '@/lib/types';
+import { features } from '@/lib/features';
 
 export default function Athlete() {
   const { db, ready, session, logout, update, toast, theme, toggleTheme } = useApp();
@@ -36,7 +38,10 @@ export default function Athlete() {
     [filter, setFilter] = useState(''),
     [detail, setDetail] = useState<Registration | null>(null),
     [cancel, setCancel] = useState<Registration | null>(null),
-    [cardReg, setCardReg] = useState<Registration | null>(null);
+    [cardReg, setCardReg] = useState<Registration | null>(null),
+    [review, setReview] = useState<Registration | null>(null),
+    [reviewText, setReviewText] = useState(''),
+    [reviewError, setReviewError] = useState('');
   useEffect(() => {
     if (ready && (!session || session.role !== 'atleta')) router.replace('/entrar/?perfil=atleta');
   }, [ready, session, router]);
@@ -63,8 +68,8 @@ export default function Athlete() {
       <DemoNotice />
       <main className="container athlete-page">
         <PageHeading
-          eyebrow="SEU ESPAÇO, SEU RITMO"
-          title={`Olá, ${session.name.split(' ')[0]}. Vamos mais longe?`}
+          eyebrow="ÁREA DO ATLETA"
+          title={`Olá, ${session.name.split(' ')[0]}.`}
           description="Suas inscrições e o que você precisa saber antes da largada."
           action={
             <button
@@ -134,14 +139,14 @@ export default function Athlete() {
                     icon={Clock3}
                   />
                   <Stat
-                    label="Novos caminhos"
+                    label="Modalidades"
                     value="05"
-                    detail="Modalidades para descobrir"
+                    detail="Disponíveis no calendário"
                     icon={MapPin}
                   />
                 </div>
                 <div className="athlete-list-heading">
-                  <h2>Suas próximas experiências</h2>
+                  <h2>Suas inscrições</h2>
                   <select
                     aria-label="Filtrar minhas inscrições"
                     value={filter}
@@ -238,6 +243,31 @@ export default function Athlete() {
                                   <ArrowRight size={14} />
                                 </button>
                               )}
+                              {r.status === 'Confirmada' &&
+                                eventPassed(event.date) &&
+                                (() => {
+                                  const sent = db.testimonials.find(
+                                    (t) => t.registrationId === r.id,
+                                  );
+                                  return sent ? (
+                                    <span className="review-sent">
+                                      <CheckCircle2 size={14} />
+                                      {sent.visible ? 'Depoimento publicado' : 'Depoimento enviado'}
+                                    </span>
+                                  ) : (
+                                    <button
+                                      className="button button-primary button-small"
+                                      onClick={() => {
+                                        setReview(r);
+                                        setReviewText('');
+                                        setReviewError('');
+                                      }}
+                                    >
+                                      <MessageSquareQuote size={14} />
+                                      Deixar depoimento
+                                    </button>
+                                  );
+                                })()}
                             </div>
                           </div>
                         </div>
@@ -249,9 +279,9 @@ export default function Athlete() {
                       title={
                         registrations.length
                           ? 'Nenhuma inscrição com esse status'
-                          : 'Sua próxima história começa aqui'
+                          : 'Você ainda não tem inscrições'
                       }
-                      text="Encontre seu próximo desafio e garanta seu lugar na largada."
+                      text="Escolha um evento no calendário para se inscrever."
                       action={
                         <Link href="/" className="button button-primary">
                           Explorar eventos
@@ -266,10 +296,7 @@ export default function Athlete() {
             {tab === 'dados' && <AthleteProfile />}
             {tab === 'preferencias' && (
               <div className="section-stack">
-                <Panel
-                  title="Sua experiência, do seu jeito"
-                  description="As preferências são salvas neste navegador."
-                >
+                <Panel title="Aparência" description="As preferências são salvas neste navegador.">
                   <div className="settings-row">
                     <div>
                       <h3>Tema da plataforma</h3>
@@ -279,9 +306,11 @@ export default function Athlete() {
                       Alternar tema
                     </button>
                   </div>
-                  <div className="settings-row">
-                    <AccentPicker />
-                  </div>
+                  {features.personalAccent && (
+                    <div className="settings-row">
+                      <AccentPicker />
+                    </div>
+                  )}
                 </Panel>
                 <Panel title="Sobre esta demonstração">
                   <p className="section-description">
@@ -425,12 +454,78 @@ export default function Athlete() {
                 </div>
               </div>
               <p className="modal-hint">
-                Apresente este QR Code no balcão de credenciamento. Dados demonstrativos — sem
+                Apresente este QR Code no balcão de credenciamento. Dados demonstrativos, sem
                 validade real.
               </p>
             </Modal>
           );
         })()}
+      {review && (
+        <Modal
+          title={`Como foi a ${db.events.find((e) => e.id === review.eventId)?.name ?? 'prova'}?`}
+          onClose={() => setReview(null)}
+        >
+          <form
+            className="review-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const text = reviewText.trim();
+              if (text.length < 20) {
+                setReviewError('Escreva pelo menos 20 caracteres.');
+                return;
+              }
+              update(
+                (d) => ({
+                  ...d,
+                  testimonials: [
+                    {
+                      id: uid('dep'),
+                      registrationId: review.id,
+                      eventId: review.eventId,
+                      name: review.name,
+                      text,
+                      createdAt: new Date().toISOString(),
+                      visible: false,
+                    },
+                    ...d.testimonials,
+                  ],
+                }),
+                `Depoimento enviado por ${review.name}`,
+              );
+              toast('Depoimento enviado. Ele aparece no site depois da aprovação.');
+              setReview(null);
+            }}
+          >
+            <Field label="Seu depoimento" full>
+              <textarea
+                rows={4}
+                maxLength={280}
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="Conte como foi a prova: percurso, retirada do kit, organização."
+                autoFocus
+              />
+            </Field>
+            <p className="review-hint">
+              <span>Aparece na página inicial depois da aprovação da administração.</span>
+              <span>{reviewText.length}/280</span>
+            </p>
+            {reviewError && (
+              <p className="error-message" role="alert">
+                {reviewError}
+              </p>
+            )}
+            <div className="modal-actions">
+              <button type="button" className="button button-ghost" onClick={() => setReview(null)}>
+                Cancelar
+              </button>
+              <button type="submit" className="button button-primary">
+                Enviar depoimento
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
       {cancel && (
         <Modal title="Cancelar esta inscrição?" onClose={() => setCancel(null)}>
           <p className="section-description">

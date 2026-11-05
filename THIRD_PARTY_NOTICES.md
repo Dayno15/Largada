@@ -21,4 +21,11 @@ Fotografias locais usadas apenas como material ilustrativo de eventos fictícios
 | `road-bike.jpg` | ID CDN `photo-1517649763962-0c623066013b` |
 | `swimming.jpg` | ID CDN `photo-1530549387789-4c1017266635` |
 
+Fotografias do Pexels, sob a [Pexels License](https://www.pexels.com/license/):
+
+| Arquivo | Foto de origem |
+| --- | --- |
+| `street-race.jpg` | https://www.pexels.com/photo/photo-of-people-in-a-marathon-2654902/ |
+| `race-volunteer.jpg` | https://www.pexels.com/photo/volunteer-aiding-marathon-runner-on-sunny-day-34089572/ |
+
 Os nomes dos eventos, participantes e valores desta demonstração não identificam os atletas ou eventos das fotografias. Não há vínculo com ou endosso dos fotografados.

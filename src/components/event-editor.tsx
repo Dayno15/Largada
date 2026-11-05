@@ -6,6 +6,7 @@ import { Field, Modal } from './ui';
 import type { RaceEvent } from '@/lib/types';
 import { seedEvents, sports } from '@/lib/data';
 import { asset, states, uid } from '@/lib/utils';
+import { features } from '@/lib/features';
 
 export function EventEditor({ event, onClose }: { event?: RaceEvent; onClose: () => void }) {
   const { db, session, update, toast } = useApp();
@@ -239,22 +240,26 @@ export function EventEditor({ event, onClose }: { event?: RaceEvent; onClose: ()
                   rows={4}
                 />
               </Field>
-              <Field label="WhatsApp do evento (link)">
-                <input
-                  type="url"
-                  placeholder="https://wa.me/55..."
-                  value={draft.whatsapp || ''}
-                  onChange={(e) => set('whatsapp', e.target.value || undefined)}
-                />
-              </Field>
-              <Field label="Rota no Strava (link)">
-                <input
-                  type="url"
-                  placeholder="https://www.strava.com/routes/..."
-                  value={draft.strava || ''}
-                  onChange={(e) => set('strava', e.target.value || undefined)}
-                />
-              </Field>
+              {features.eventLinks && (
+                <>
+                  <Field label="WhatsApp do evento (link)">
+                    <input
+                      type="url"
+                      placeholder="https://wa.me/55..."
+                      value={draft.whatsapp || ''}
+                      onChange={(e) => set('whatsapp', e.target.value || undefined)}
+                    />
+                  </Field>
+                  <Field label="Rota no Strava (link)">
+                    <input
+                      type="url"
+                      placeholder="https://www.strava.com/routes/..."
+                      value={draft.strava || ''}
+                      onChange={(e) => set('strava', e.target.value || undefined)}
+                    />
+                  </Field>
+                </>
+              )}
             </div>
           </div>
         )}

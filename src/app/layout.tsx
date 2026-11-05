@@ -27,16 +27,15 @@ const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
 const site = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 export const metadata: Metadata = {
   metadataBase: new URL(site),
-  title: { default: 'CorridaAqui — Seu próximo ponto de partida', template: '%s | CorridaAqui' },
-  description:
-    'Encontre seu próximo desafio. Eventos esportivos, inscrições e gestão em uma plataforma.',
+  title: { default: 'CorridaAqui · Eventos esportivos', template: '%s | CorridaAqui' },
+  description: 'Calendário de eventos esportivos com inscrição online e painel para organizadores.',
   icons: { icon: `${base}/icon.svg`, apple: `${base}/icon.svg` },
   manifest: `${base}/manifest.json`,
   appleWebApp: { capable: true, title: 'CorridaAqui' },
   openGraph: {
-    title: 'CorridaAqui — Seu próximo ponto de partida',
+    title: 'CorridaAqui · Eventos esportivos',
     description:
-      'Encontre seu próximo desafio. Eventos esportivos, inscrições e gestão em uma plataforma.',
+      'Calendário de eventos esportivos com inscrição online e painel para organizadores.',
     type: 'website',
     locale: 'pt_BR',
     siteName: 'CorridaAqui',
@@ -48,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="pt-BR"
       data-scroll-behavior="smooth"
+      data-accent="blue"
       suppressHydrationWarning
       className={`${manrope.variable} ${lora.variable}`}
     >

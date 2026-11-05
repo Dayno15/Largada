@@ -40,6 +40,26 @@ const accounts = {
     icon: ShieldCheck,
   },
 };
+// Texto e foto da coluna esquerda, por perfil. O admin não aparece nas abas
+// (acesso só por /entrar/?perfil=admin) e usa a mesma coluna do organizador.
+const stories = {
+  atleta: {
+    image: '/images/street-race.jpg',
+    alt: 'Largada de uma corrida de rua com atletas numerados',
+    eyebrow: 'SEU PRÓXIMO PONTO DE PARTIDA',
+    title: ['Suas provas,', 'inscrições e', 'resultados.'],
+    text: ['Comprovante e QR Code do kit', 'ficam na sua área do atleta.'],
+  },
+  organizador: {
+    image: '/images/race-volunteer.jpg',
+    alt: 'Voluntária entregando água a uma corredora durante a prova',
+    position: '50% 100%',
+    eyebrow: 'TUDO EM UM LUGAR SÓ',
+    title: ['Inscrições,', 'kits e resultados', 'em uma conta.'],
+    text: ['Acompanhe inscritos, kits', 'e repasses do seu evento.'],
+  },
+};
+const visibleRoles = ['atleta', 'organizador'] as const;
 export default function Login() {
   const params = useSearchParams(),
     router = useRouter();
@@ -141,6 +161,8 @@ export default function Login() {
     const next = params.get('voltar');
     router.push(next && next.startsWith('/inscricao/') ? next : `/${role}/`);
   }
+  const storyKey = role === 'atleta' ? 'atleta' : 'organizador';
+  const story = stories[storyKey];
   function fill() {
     setEmail(accounts[role].email);
     setPassword('demo123');
@@ -155,23 +177,39 @@ export default function Login() {
           <ArrowLeft size={15} />
           Voltar aos eventos
         </Link>
-        <img src={asset('/images/city-run.jpg')} alt="Atletas em uma corrida de rua" />
+        {/* As duas fotos ficam carregadas, uma sobre a outra; a troca é só de opacidade. */}
+        {visibleRoles.map((k) => {
+          const s = stories[k];
+          return (
+            <img
+              key={k}
+              src={asset(s.image)}
+              alt={k === storyKey ? s.alt : ''}
+              aria-hidden={k !== storyKey || undefined}
+              className={k === storyKey ? 'active' : undefined}
+              style={'position' in s ? { objectPosition: s.position } : undefined}
+            />
+          );
+        })}
         <div className="login-story-shade" />
-        <div className="login-story-copy">
-          <span className="hero-eyebrow">SEU PRÓXIMO PONTO DE PARTIDA</span>
+        <div className="login-story-copy" key={`copy-${storyKey}`}>
+          <span className="hero-eyebrow">{story.eyebrow}</span>
           <h1>
-            Uma conta.
-            <br />
-            Muitos caminhos
-            <br />
-            pela frente.
+            {story.title.map((line, i) => (
+              <span key={line}>
+                {i > 0 && <br />}
+                {line}
+              </span>
+            ))}
           </h1>
           <p>
-            Para quem corre, para quem organiza
-            <br />e para quem faz tudo acontecer.
+            {story.text[0]}
+            <br />
+            {story.text[1]}
           </p>
           <span className="login-story-bottom">
-            <RouteMark />O movimento começa com você.
+            <RouteMark />
+            Corrida, trilha, ciclismo e triathlon.
           </span>
         </div>
       </section>
@@ -181,32 +219,39 @@ export default function Login() {
           <ThemeToggle />
         </div>
         <div className="login-form-wrap">
-          <span className="eyebrow">BOM TER VOCÊ AQUI</span>
-          <h2>{signup ? 'Seu primeiro passo.' : 'Vamos continuar?'}</h2>
+          <span className="eyebrow">ACESSO</span>
+          <h2>{signup ? 'Criar perfil.' : 'Entrar.'}</h2>
           <p>
             {signup
-              ? 'Crie um perfil local para testar sua experiência.'
-              : 'Acesse seu espaço e prepare o próximo passo.'}
+              ? 'Crie um perfil local para testar a inscrição.'
+              : 'Escolha o tipo de acesso para continuar.'}
           </p>
-          <div className="login-role-tabs" role="tablist" aria-label="Tipo de acesso">
-            {(Object.keys(accounts) as Role[]).map((r) => {
-              const Icon = accounts[r].icon;
-              return (
-                <button
-                  key={r}
-                  role="tab"
-                  aria-selected={role === r}
-                  className={role === r ? 'active' : ''}
-                  onClick={() => changeRole(r)}
-                >
-                  <Icon size={16} />
-                  {accounts[r].label}
-                </button>
-              );
-            })}
-          </div>
+          {role !== 'admin' && (
+            <div
+              className="login-role-tabs"
+              role="tablist"
+              aria-label="Tipo de acesso"
+              data-active={role}
+            >
+              {visibleRoles.map((r) => {
+                const Icon = accounts[r].icon;
+                return (
+                  <button
+                    key={r}
+                    role="tab"
+                    aria-selected={role === r}
+                    className={role === r ? 'active' : ''}
+                    onClick={() => changeRole(r)}
+                  >
+                    <Icon size={16} />
+                    {accounts[r].label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {role === 'atleta' && !signup && (
-            <div className="login-method">
+            <div className="login-method login-swap">
               <button
                 className={mode === 'email' ? 'active' : ''}
                 onClick={() => {
@@ -228,7 +273,7 @@ export default function Login() {
               </button>
             </div>
           )}
-          <form onSubmit={submit} className="login-form">
+          <form key={`form-${role}`} onSubmit={submit} className="login-form login-swap">
             {signup && (
               <Field label="Nome completo">
                 <input
@@ -355,9 +400,9 @@ export default function Login() {
               <ArrowRight size={17} />
             </button>
           </form>
-          <div className="demo-account">
+          <div key={`demo-${role}`} className="demo-account login-swap">
             <div>
-              <span className="demo-account-label">EXPLORE SEM COMPLICAÇÃO</span>
+              <span className="demo-account-label">CONTA DE DEMONSTRAÇÃO</span>
               <strong>Uma conta pronta para testar.</strong>
               <p>
                 {mode === 'cpf'
@@ -371,7 +416,7 @@ export default function Login() {
             </button>
           </div>
           {role === 'atleta' && (
-            <p className="signup-link">
+            <p className="signup-link login-swap">
               {signup ? 'Já tem um perfil?' : 'Ainda não tem um perfil?'}{' '}
               <button
                 onClick={() => {

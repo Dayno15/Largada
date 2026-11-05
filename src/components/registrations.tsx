@@ -6,6 +6,7 @@ import { Badge, EmptyState, Field, Modal, Panel, SearchBox } from './ui';
 import { ExportModal } from './exports';
 import type { RaceEvent, Registration } from '@/lib/types';
 import { categoryFor, clean, money, shortDate } from '@/lib/utils';
+import { features } from '@/lib/features';
 
 export function Registrations({
   events,
@@ -398,10 +399,8 @@ export function RegistrationEditor({
           </dd>
         </div>
         <div>
-          <dt>Kit / parceiro(a)</dt>
-          <dd>
-            {r.kit} · {r.partner || 'Individual'}
-          </dd>
+          <dt>{features.partner ? 'Kit / parceiro(a)' : 'Kit'}</dt>
+          <dd>{features.partner ? `${r.kit} · ${r.partner || 'Individual'}` : r.kit}</dd>
         </div>
         <div>
           <dt>Cupom</dt>

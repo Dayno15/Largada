@@ -52,13 +52,11 @@ export function Overview({
     <div className="section-stack">
       <div className="overview-welcome">
         <div>
-          <span className="eyebrow">
-            {isAdmin ? 'CONTROLE PARA IR MAIS LONGE' : 'CUIDE DOS BASTIDORES. INSPIRE CONQUISTAS.'}
-          </span>
-          <h2>{isAdmin ? 'A operação em um só lugar.' : 'Seu evento, no ritmo certo.'}</h2>
+          <span className="eyebrow">{isAdmin ? 'ADMINISTRAÇÃO' : 'PAINEL DO ORGANIZADOR'}</span>
+          <h2>{isAdmin ? 'Visão geral da plataforma.' : 'Resumo dos seus eventos.'}</h2>
           <p>
             {isAdmin
-              ? 'Acompanhe eventos, pagamentos e organizadores com uma visão clara de toda a plataforma.'
+              ? 'Eventos, pagamentos e organizadores de toda a plataforma.'
               : `Olá, ${session?.name.split(' ')[0]}. Aqui está o que está acontecendo com os seus eventos.`}
           </p>
           <button className="text-link" onClick={() => navigate('inscricoes')}>
@@ -131,7 +129,7 @@ export function Overview({
             </div>
           </div>
         </Panel>
-        <Panel title="Inscrições por status" description="Um retrato do seu público.">
+        <Panel title="Inscrições por status" description="Distribuição das inscrições por status.">
           <div className="donut-layout">
             <div
               className="status-donut"
@@ -197,17 +195,15 @@ export function Overview({
               </button>
             </div>
           ))}
-          {!next.length && (
-            <p className="section-description">Nenhum evento agendado. Que tal criar o próximo?</p>
-          )}
+          {!next.length && <p className="section-description">Nenhum evento agendado.</p>}
           <button className="new-event-inline" onClick={onCreate}>
             <Plus size={16} />
-            Criar um novo ponto de partida
+            Criar evento
           </button>
         </Panel>
         <Panel
           title="Últimas inscrições"
-          description="Quem já está pronto para a largada."
+          description="As cinco inscrições mais recentes."
           action={
             <button className="text-link" onClick={() => navigate('inscricoes')}>
               Ver todas
@@ -242,7 +238,7 @@ export function Overview({
           <span>
             <Users size={22} />
             <span>
-              <strong>Novos organizadores querem fazer parte.</strong>
+              <strong>Organizadores aguardando aprovação.</strong>
               <small>
                 {db.organizers.filter((o) => o.status === 'Pendente').length} cadastro aguardando
                 sua análise.

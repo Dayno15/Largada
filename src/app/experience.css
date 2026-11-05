@@ -410,7 +410,12 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(0deg, #10392ff5, #10392f20 100%), linear-gradient(90deg, #10392f66, transparent);
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--hero) 96%, transparent),
+      color-mix(in srgb, var(--hero) 12%, transparent) 100%
+    ),
+    linear-gradient(90deg, color-mix(in srgb, var(--hero) 40%, transparent), transparent);
   z-index: -1;
 }
 .login-back {
@@ -4395,4 +4400,318 @@
   .ticket-footer > strong > small {
     font-size: 8px;
   }
+}
+
+/* ---------- Campos de seleção, checkbox e radio ----------
+   A seta do select é desenhada dentro do próprio campo (background), então
+   clicar nela abre a lista. Checkbox e radio seguem a cor da marca. */
+:root select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23758078' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 15px;
+  cursor: pointer;
+}
+:root[data-theme='dark'] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1aea3' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+:root .sort-control select,
+:root .select-wrap select {
+  padding-right: 22px;
+  background-position: right 0 center;
+  background-size: 14px;
+}
+:root input[type='checkbox'],
+:root input[type='radio'] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-grid;
+  place-content: center;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 60%, var(--border));
+  border-radius: 5px;
+  background: var(--surface);
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+:root input[type='radio'] {
+  border-radius: 50%;
+}
+:root input[type='checkbox']::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform: scale(0);
+  transition: transform 0.12s;
+}
+:root input[type='radio']::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+  transform: scale(0);
+  transition: transform 0.12s;
+}
+:root input[type='checkbox']:checked {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+:root input[type='radio']:checked {
+  border-color: var(--brand);
+}
+:root input[type='checkbox']:checked::before,
+:root input[type='radio']:checked::before {
+  transform: scale(1);
+}
+:root input[type='checkbox']:hover,
+:root input[type='radio']:hover {
+  border-color: var(--brand);
+}
+:root input[type='checkbox']:focus-visible,
+:root input[type='radio']:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+:root .check-row input {
+  margin-top: 1px;
+}
+
+/* ---------- Depoimentos: área do atleta e painel do admin ---------- */
+.review-sent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.review-form textarea {
+  width: 100%;
+  resize: vertical;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.review-hint {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.testimonial-admin-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.testimonial-admin-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.testimonial-admin-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.testimonial-admin-top strong {
+  display: block;
+  font-size: 13px;
+}
+.testimonial-admin-top span:not(.badge):not(.status-dot) {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.testimonial-admin-item > p {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.7;
+  font-style: italic;
+  color: var(--text);
+}
+.testimonial-admin-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+@media (max-width: 480px) {
+  .testimonial-admin-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Troca atleta / organizador no login ----------
+   Coluna da foto presa na altura da tela (não pula quando o formulário muda de
+   tamanho), fotos trocam por opacidade, texto e formulário entram com fade curto
+   e o destaque da aba desliza. */
+.login-story {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
+  min-height: 0;
+}
+.login-story > img {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.login-story > img.active {
+  opacity: 1;
+}
+.login-story-copy,
+.login-swap {
+  animation: login-swap-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.login-swap {
+  animation-duration: 0.3s;
+}
+@keyframes login-swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+:root .login-form-wrap {
+  margin-block: 0;
+}
+@media (min-width: 761px) {
+  :root .login-form-wrap {
+    padding-top: clamp(28px, 7vh, 80px);
+  }
+}
+:root .login-role-tabs {
+  position: relative;
+  grid-template-columns: 1fr 1fr;
+}
+.login-role-tabs::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 5.5px);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  box-shadow: 0 2px 4px #183b2910;
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.login-role-tabs[data-active='organizador']::before {
+  transform: translateX(calc(100% + 3px));
+}
+.login-role-tabs button {
+  position: relative;
+  transition: color 0.2s;
+}
+:root .login-role-tabs button.active {
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-story > img,
+  .login-role-tabs::before {
+    transition: none;
+  }
+  .login-story-copy,
+  .login-swap {
+    animation: none;
+  }
+}
+
+/* ---------- Troca de tema ----------
+   O círculo é animado pelo provider (toggleTheme); aqui só desligamos o
+   crossfade padrão do navegador para o corte ficar nítido. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Botão de sair no topo do painel; no celular fica só o ícone. */
+.topbar-logout {
+  gap: 6px;
+}
+@media (max-width: 760px) {
+  .topbar-logout {
+    padding: 8px;
+  }
+  .topbar-logout > span {
+    display: none;
+  }
+}
+
+/* ---------- Itens "Em desenvolvimento" ----------
+   Tooltip próprio (o title nativo demora e não segue o visual). Fica acima do
+   elemento, alinhado à esquerda; data-tooltip-align="end" alinha à direita. */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  z-index: 60;
+  left: 8px;
+  bottom: calc(100% + 4px);
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 18px #0000001f;
+}
+[data-tooltip][data-tooltip-align='end']:hover::after,
+[data-tooltip][data-tooltip-align='end']:focus-visible::after {
+  left: auto;
+  right: 0;
+}
+/* Apagado por cor, não por opacidade: opacidade também apagaria o tooltip. */
+:root .workspace-nav button.in-dev {
+  color: color-mix(in srgb, var(--muted) 50%, transparent);
+}
+:root .workspace-nav button[aria-disabled='true'],
+:root .workspace-nav button[aria-disabled='true']:hover {
+  cursor: not-allowed;
+  background: none;
+}
+:root .button[aria-disabled='true'],
+:root .button[aria-disabled='true']:hover {
+  cursor: not-allowed;
+  color: var(--subtle);
+  background: var(--surface-2);
+  border-color: var(--border);
+  box-shadow: none;
+  transform: none;
+}
+.dev-notice {
+  margin-bottom: 16px;
 }

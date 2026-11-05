@@ -27,6 +27,7 @@ import { demoProfile } from '@/lib/data';
 import type { Athlete, Registration } from '@/lib/types';
 import { ageAt, asset, categoryFor, dateLabel, money, states, uid, validCPF } from '@/lib/utils';
 import { downloadReceipt } from '@/lib/export';
+import { features } from '@/lib/features';
 
 export default function Checkout() {
   const params = useSearchParams();
@@ -333,17 +334,17 @@ export default function Checkout() {
           <h1>
             {step === 3
               ? registration?.status === 'Confirmada'
-                ? 'Seu lugar está garantido.'
-                : 'Estamos quase na largada.'
+                ? 'Inscrição confirmada.'
+                : 'Falta confirmar o pagamento.'
               : step === 2
-                ? 'Falta só mais um passo.'
-                : 'Vamos preparar sua inscrição.'}
+                ? 'Revise e pague.'
+                : 'Dados da inscrição.'}
           </h1>
           <p>
             {step === 1
-              ? 'Conte um pouco sobre você e escolha sua experiência.'
+              ? 'Preencha seus dados e escolha a distância.'
               : step === 2
-                ? 'Revise os detalhes e experimente nosso pagamento demonstrativo.'
+                ? 'Confira os dados e escolha a forma de pagamento. Nenhuma cobrança é real.'
                 : 'Acompanhe os detalhes na sua área do atleta.'}
           </p>
         </div>
@@ -462,7 +463,7 @@ export default function Checkout() {
                     </div>
                   </div>
                   <div className="form-section">
-                    <h3>A sua experiência</h3>
+                    <h3>Distância e kit</h3>
                     <div className="distance-choices">
                       {event.distances.map((d) => (
                         <label
@@ -507,13 +508,15 @@ export default function Checkout() {
                           placeholder="Opcional"
                         />
                       </Field>
-                      <Field label="Parceiro(a) de dupla">
-                        <input
-                          value={partner}
-                          onChange={(e) => setPartner(e.target.value)}
-                          placeholder="Opcional"
-                        />
-                      </Field>
+                      {features.partner && (
+                        <Field label="Parceiro(a) de dupla">
+                          <input
+                            value={partner}
+                            onChange={(e) => setPartner(e.target.value)}
+                            placeholder="Opcional"
+                          />
+                        </Field>
+                      )}
                       <Field label="Observações" full>
                         <textarea
                           value={notes}

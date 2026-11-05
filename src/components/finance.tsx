@@ -16,6 +16,7 @@ import { Badge, EmptyState, Field, Modal, Panel, Stat } from './ui';
 import { ExportModal } from './exports';
 import type { RaceEvent } from '@/lib/types';
 import { financials, money, shortDate, uid } from '@/lib/utils';
+import { isLocked } from '@/lib/features';
 
 export function Finance({
   events,
@@ -193,106 +194,108 @@ export function Finance({
           </Panel>
         </div>
       )}
-      <Panel
-        title={isAdmin ? 'Repasses aos organizadores' : 'Meus recebimentos'}
-        description="Movimentações fictícias, sem conexão com bancos ou gateway."
-        action={
-          <button
-            className="button button-primary button-small"
-            disabled={!events.length}
-            onClick={() => setCreating(true)}
-          >
-            <Plus size={14} />
-            {isAdmin ? 'Programar repasse' : 'Solicitar recebimento'}
-          </button>
-        }
-      >
-        <div className="transfer-summary">
-          <div>
-            <ArrowDownLeft size={18} />
-            <span>
-              Já recebido<strong>{money(sent)}</strong>
-            </span>
+      {!isLocked('repasses') && (
+        <Panel
+          title={isAdmin ? 'Repasses aos organizadores' : 'Meus recebimentos'}
+          description="Movimentações fictícias, sem conexão com bancos ou gateway."
+          action={
+            <button
+              className="button button-primary button-small"
+              disabled={!events.length}
+              onClick={() => setCreating(true)}
+            >
+              <Plus size={14} />
+              {isAdmin ? 'Programar repasse' : 'Solicitar recebimento'}
+            </button>
+          }
+        >
+          <div className="transfer-summary">
+            <div>
+              <ArrowDownLeft size={18} />
+              <span>
+                Já recebido<strong>{money(sent)}</strong>
+              </span>
+            </div>
+            <div>
+              <ArrowUpRight size={18} />
+              <span>
+                Programado<strong>{money(scheduled)}</strong>
+              </span>
+            </div>
+            <div>
+              <Wallet size={18} />
+              <span>
+                Disponível<strong>{money(balance)}</strong>
+              </span>
+            </div>
           </div>
-          <div>
-            <ArrowUpRight size={18} />
-            <span>
-              Programado<strong>{money(scheduled)}</strong>
-            </span>
-          </div>
-          <div>
-            <Wallet size={18} />
-            <span>
-              Disponível<strong>{money(balance)}</strong>
-            </span>
-          </div>
-        </div>
-        {transfers.length ? (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Repasse / evento</th>
-                  <th>Conta de destino</th>
-                  <th>Data prevista</th>
-                  <th>Valor</th>
-                  <th>Situação</th>
-                  {isAdmin && <th>Ação</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {transfers.map((t) => (
-                  <tr key={t.id}>
-                    <td>
-                      <strong>{events.find((e) => e.id === t.eventId)?.name}</strong>
-                      <small>{t.id}</small>
-                    </td>
-                    <td>{t.bank}</td>
-                    <td>{shortDate(t.date)}</td>
-                    <td>
-                      <strong>{money(t.amount)}</strong>
-                    </td>
-                    <td>
-                      <Badge>{t.status}</Badge>
-                    </td>
-                    {isAdmin && (
-                      <td>
-                        {t.status === 'Programado' ? (
-                          <button
-                            className="text-link"
-                            onClick={() => {
-                              update(
-                                (d) => ({
-                                  ...d,
-                                  transfers: d.transfers.map((x) =>
-                                    x.id === t.id ? { ...x, status: 'Recebido' } : x,
-                                  ),
-                                }),
-                                `Repasse ${t.id} marcado como recebido (simulação)`,
-                              );
-                              toast('Recebimento confirmado apenas na demonstração.');
-                            }}
-                          >
-                            Simular recebimento
-                            <ArrowDownLeft size={14} />
-                          </button>
-                        ) : (
-                          <span className="muted">Concluído</span>
-                        )}
-                      </td>
-                    )}
+          {transfers.length ? (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Repasse / evento</th>
+                    <th>Conta de destino</th>
+                    <th>Data prevista</th>
+                    <th>Valor</th>
+                    <th>Situação</th>
+                    {isAdmin && <th>Ação</th>}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <EmptyState
-            title="Nenhum recebimento por aqui"
-            text="Os repasses programados e concluídos aparecerão nesta área."
-          />
-        )}
-      </Panel>
+                </thead>
+                <tbody>
+                  {transfers.map((t) => (
+                    <tr key={t.id}>
+                      <td>
+                        <strong>{events.find((e) => e.id === t.eventId)?.name}</strong>
+                        <small>{t.id}</small>
+                      </td>
+                      <td>{t.bank}</td>
+                      <td>{shortDate(t.date)}</td>
+                      <td>
+                        <strong>{money(t.amount)}</strong>
+                      </td>
+                      <td>
+                        <Badge>{t.status}</Badge>
+                      </td>
+                      {isAdmin && (
+                        <td>
+                          {t.status === 'Programado' ? (
+                            <button
+                              className="text-link"
+                              onClick={() => {
+                                update(
+                                  (d) => ({
+                                    ...d,
+                                    transfers: d.transfers.map((x) =>
+                                      x.id === t.id ? { ...x, status: 'Recebido' } : x,
+                                    ),
+                                  }),
+                                  `Repasse ${t.id} marcado como recebido (simulação)`,
+                                );
+                                toast('Recebimento confirmado apenas na demonstração.');
+                              }}
+                            >
+                              Simular recebimento
+                              <ArrowDownLeft size={14} />
+                            </button>
+                          ) : (
+                            <span className="muted">Concluído</span>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <EmptyState
+              title="Nenhum recebimento por aqui"
+              text="Os repasses programados e concluídos aparecerão nesta área."
+            />
+          )}
+        </Panel>
+      )}
       <div className="info-message spaced">
         <Info size={17} />O saldo considera apenas inscrições confirmadas. Não há liquidação,
         transferência bancária ou cobrança real. Cancelar uma inscrição retira sua receita dos

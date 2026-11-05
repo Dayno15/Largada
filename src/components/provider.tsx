@@ -1,12 +1,13 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { Check, Info, X } from 'lucide-react';
 import { createSeed } from '@/lib/data';
 import type { Database, Session } from '@/lib/types';
 import { uid } from '@/lib/utils';
 
-const STORAGE = 'corridaqui-demo-v1';
+const STORAGE = 'corridaqui-demo-v2';
 interface Context {
   db: Database;
   ready: boolean;
@@ -16,7 +17,8 @@ interface Context {
   update: (fn: (db: Database) => Database, activity?: string) => void;
   login: (s: Session) => void;
   logout: () => void;
-  toggleTheme: () => void;
+  /** Recebe o evento do botão para a animação sair dele. */
+  toggleTheme: (event?: { currentTarget: Element }) => void;
   setAccent: (color: string) => void;
   toast: (message: string) => void;
   reset: () => void;
@@ -32,7 +34,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false),
     [session, setSession] = useState<Session | null>(null);
   const [theme, setTheme] = useState('light'),
-    [accent, setAccentState] = useState('teal');
+    [accent, setAccentState] = useState('blue');
   const [message, setMessage] = useState('');
   // Intentional browser-storage hydration after the identical server/client first render.
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -42,16 +44,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (
-          parsed.version === 1 &&
+          parsed.version === 2 &&
           Array.isArray(parsed.events) &&
-          Array.isArray(parsed.registrations)
+          Array.isArray(parsed.registrations) &&
+          Array.isArray(parsed.testimonials)
         )
           setDb(parsed);
       }
       const auth = sessionStorage.getItem('corridaqui-session');
       if (auth) setSession(JSON.parse(auth));
       setTheme(localStorage.getItem('corridaqui-theme') || 'light');
-      setAccentState(localStorage.getItem('corridaqui-accent') || 'teal');
+      setAccentState(localStorage.getItem('corridaqui-cor') || 'blue');
     } catch {
       /* Storage is optional: the demo works in memory. */
     }
@@ -72,7 +75,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (ready)
       try {
         localStorage.setItem('corridaqui-theme', theme);
-        localStorage.setItem('corridaqui-accent', accent);
+        localStorage.setItem('corridaqui-cor', accent);
       } catch {
         /* Storage unavailable */
       }
@@ -93,6 +96,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       sessionStorage.removeItem('corridaqui-session');
     } catch {}
+  }
+  // Troca de tema com View Transitions: o tema novo cresce em círculo a partir do
+  // botão clicado. Sem suporte no navegador ou com "reduzir movimento", troca direto.
+  function toggleTheme(event?: { currentTarget: Element }) {
+    const next = theme === 'light' ? 'dark' : 'light';
+    const apply = () => {
+      document.documentElement.dataset.theme = next;
+      flushSync(() => setTheme(next));
+    };
+    if (
+      typeof document.startViewTransition !== 'function' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      apply();
+      return;
+    }
+    const rect = event?.currentTarget.getBoundingClientRect();
+    const x = rect ? rect.left + rect.width / 2 : window.innerWidth - 40;
+    const y = rect ? rect.top + rect.height / 2 : 40;
+    const radius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
+    document
+      .startViewTransition(apply)
+      .ready.then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+          {
+            duration: 550,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            pseudoElement: '::view-transition-new(root)',
+          },
+        );
+      })
+      .catch(() => {});
   }
   function update(fn: (d: Database) => Database, activity?: string) {
     setDb((old) => {
@@ -124,7 +163,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         update,
         login,
         logout,
-        toggleTheme: () => setTheme((t) => (t === 'light' ? 'dark' : 'light')),
+        toggleTheme,
         setAccent: setAccentState,
         toast: setMessage,
         reset: () => {

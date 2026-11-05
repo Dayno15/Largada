@@ -175,8 +175,7 @@ export function Footer() {
           <div className="footer-brand-col">
             <Brand />
             <p>
-              Encontre seu próximo desafio. Eventos esportivos, inscrições e gestão em uma
-              plataforma.
+              Calendário de eventos esportivos com inscrição online e painel para organizadores.
             </p>
             <div className="footer-social">
               <a
@@ -210,11 +209,16 @@ export function Footer() {
             <Link href="/">Explorar eventos</Link>
             <Link href="/entrar/?perfil=atleta">Área do atleta</Link>
             <Link href="/entrar/?perfil=organizador">Para organizadores</Link>
+            <Link href="/entrar/?perfil=admin">Administração</Link>
           </div>
           <div className="footer-links-col">
             <strong>Legal</strong>
-            <Link href="/termos/">Termos de uso</Link>
-            <Link href="/privacidade/">Política de privacidade</Link>
+            <a href="#" onClick={(e) => e.preventDefault()}>
+              Termos de uso
+            </a>
+            <a href="#" onClick={(e) => e.preventDefault()}>
+              Política de privacidade
+            </a>
           </div>
           <div className="footer-links-col">
             <strong>Contato</strong>
@@ -229,9 +233,7 @@ export function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>
-            © {new Date().getFullYear()} CorridaAqui · Feito para colocar pessoas em movimento.
-          </span>
+          <span>© {new Date().getFullYear()} CorridaAqui</span>
           <span>Demo interativa · Sem cobranças reais</span>
         </div>
       </div>

@@ -9,6 +9,8 @@ import {
   Download,
   Edit3,
   Eye,
+  EyeOff,
+  Info,
   FileText,
   MapPin,
   Plus,
@@ -24,6 +26,7 @@ import { asset, clean, dateLabel, money, shortDate, uid } from '@/lib/utils';
 import { exportOrganizers } from '@/lib/export';
 import { AccentPicker } from './navigation';
 import { createSeed } from '@/lib/data';
+import { DEV_LABEL, isReadOnly } from '@/lib/features';
 
 export function EventsManagement({
   events,
@@ -62,7 +65,7 @@ export function EventsManagement({
     <>
       <Panel
         title="Seu calendário de eventos"
-        description="Tudo o que você precisa, antes da largada."
+        description="Eventos publicados, rascunhos e encerrados."
         action={
           <button className="button button-primary button-small" onClick={() => setEditing('new')}>
             <Plus size={14} />
@@ -238,7 +241,7 @@ export function Coupons({ events }: { events: RaceEvent[] }) {
     <>
       <Panel
         title="Cupons de desconto"
-        description="Um incentivo a mais para o próximo passo."
+        description="Cupons criados e uso por evento."
         action={
           <button
             disabled={!events.length}
@@ -314,7 +317,7 @@ export function Coupons({ events }: { events: RaceEvent[] }) {
           </div>
         ) : (
           <EmptyState
-            title="Seu primeiro cupom começa aqui"
+            title="Nenhum cupom criado"
             text="Crie um código para os atletas usarem no pagamento."
           />
         )}
@@ -498,6 +501,91 @@ export function Organizers() {
     </Panel>
   );
 }
+export function Testimonials() {
+  const { db, update, toast } = useApp();
+  const rows = [...db.testimonials].sort(
+    (a, b) => Number(a.visible) - Number(b.visible) || b.createdAt.localeCompare(a.createdAt),
+  );
+  const readOnly = isReadOnly('depoimentos');
+  const toggle = (id: string, visible: boolean, name: string) => {
+    if (readOnly) return;
+    update(
+      (d) => ({
+        ...d,
+        testimonials: d.testimonials.map((t) => (t.id === id ? { ...t, visible } : t)),
+      }),
+      `Depoimento de ${name} ${visible ? 'publicado' : 'ocultado'}`,
+    );
+    toast(visible ? 'Depoimento publicado na página inicial.' : 'Depoimento ocultado.');
+  };
+  return (
+    <Panel
+      title="Depoimentos dos atletas"
+      description="Só quem tem inscrição confirmada em uma prova que já aconteceu pode escrever."
+    >
+      {readOnly && (
+        <div className="info-message dev-notice">
+          <Info size={16} />
+          Em desenvolvimento: por enquanto dá para ver os depoimentos, mas não publicar ou ocultar.
+        </div>
+      )}
+      <div className="testimonial-admin-list">
+        {rows.map((t) => {
+          const event = db.events.find((e) => e.id === t.eventId);
+          const reg = db.registrations.find((r) => r.id === t.registrationId);
+          return (
+            <article key={t.id} className="testimonial-admin-item">
+              <div className="testimonial-admin-top">
+                <div>
+                  <strong>{t.name}</strong>
+                  <span>
+                    {[event?.name, reg?.distance].filter(Boolean).join(' · ')} ·{' '}
+                    {new Date(t.createdAt).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+                <Badge tone={t.visible ? 'green' : 'amber'}>
+                  {t.visible ? 'Publicado' : 'Oculto'}
+                </Badge>
+              </div>
+              <p>&ldquo;{t.text}&rdquo;</p>
+              <div className="testimonial-admin-actions">
+                {t.visible ? (
+                  <button
+                    className="button button-outline button-small"
+                    aria-disabled={readOnly || undefined}
+                    data-tooltip={readOnly ? DEV_LABEL : undefined}
+                    data-tooltip-align="end"
+                    onClick={() => toggle(t.id, false, t.name)}
+                  >
+                    <EyeOff size={14} />
+                    Ocultar do site
+                  </button>
+                ) : (
+                  <button
+                    className="button button-primary button-small"
+                    aria-disabled={readOnly || undefined}
+                    data-tooltip={readOnly ? DEV_LABEL : undefined}
+                    data-tooltip-align="end"
+                    onClick={() => toggle(t.id, true, t.name)}
+                  >
+                    <Eye size={14} />
+                    Mostrar no site
+                  </button>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+      {!rows.length && (
+        <EmptyState
+          title="Nenhum depoimento ainda"
+          text="Os depoimentos aparecem aqui quando um atleta escreve sobre uma prova que já correu."
+        />
+      )}
+    </Panel>
+  );
+}
 export function ActivityLog() {
   const { db } = useApp();
   return (
@@ -533,10 +621,7 @@ export function Settings() {
     [confirm, setConfirm] = useState(false);
   return (
     <div className="section-stack">
-      <Panel
-        title="Identidade e aparência"
-        description="Uma marca com a sua cara. A escolha vale em todas as áreas."
-      >
+      <Panel title="Identidade e aparência" description="Paleta de cores usada em todas as áreas.">
         <div className="settings-row">
           <div>
             <h3>Tema da interface</h3>

@@ -18,6 +18,8 @@ export const shortDate = (v: string) =>
 /** Dias inteiros (arredondados para cima, mínimo 0) até a data `YYYY-MM-DD`. */
 export const daysUntil = (date: string) =>
   Math.max(0, Math.ceil((new Date(date + 'T12:00:00').getTime() - Date.now()) / 86400000));
+/** A prova já aconteceu: a data `YYYY-MM-DD` é anterior a hoje (fuso local). */
+export const eventPassed = (date: string) => date < new Date().toLocaleDateString('en-CA');
 export const asset = (path: string) =>
   /^(data:|https?:)/.test(path) ? path : `${process.env.NEXT_PUBLIC_BASE_PATH || ''}${path}`;
 export const clean = (s: string) =>

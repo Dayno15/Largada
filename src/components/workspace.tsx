@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquareQuote,
   PackageCheck,
   Plus,
   Save,
@@ -33,10 +34,18 @@ import { DemoNotice, useApp } from './provider';
 import { Field, Modal, PageHeading, Panel } from './ui';
 import { Overview } from './overview';
 import { Registrations } from './registrations';
-import { EventsManagement, Coupons, Organizers, ActivityLog, Settings } from './management';
+import {
+  EventsManagement,
+  Coupons,
+  Organizers,
+  Testimonials,
+  ActivityLog,
+  Settings,
+} from './management';
 import { Finance } from './finance';
 import { EventEditor } from './event-editor';
 import type { Role } from '@/lib/types';
+import { DEV_LABEL, features, isLocked, isReadOnly } from '@/lib/features';
 
 type NavItem = { id: string; label: string; icon: LucideIcon; section?: string };
 const organizerNav: NavItem[] = [
@@ -54,6 +63,7 @@ const adminNav: NavItem[] = [
   { id: 'eventos', label: 'Todos os eventos', icon: CalendarDays },
   { id: 'inscricoes', label: 'Inscrições', icon: Users },
   { id: 'organizadores', label: 'Organizadores', icon: Building2 },
+  { id: 'depoimentos', label: 'Depoimentos', icon: MessageSquareQuote },
   { id: 'financeiro', label: 'Visão financeira', icon: Wallet, section: 'FINANCEIRO' },
   { id: 'pagamentos', label: 'Pagamentos', icon: CreditCard },
   { id: 'repasses', label: 'Repasses', icon: CircleDollarSign },
@@ -61,18 +71,19 @@ const adminNav: NavItem[] = [
   { id: 'configuracoes', label: 'Configurações', icon: Settings2 },
 ];
 const titles: Record<string, [string, string]> = {
-  'visao-geral': ['Visão geral', 'Seu ponto de partida para uma gestão mais simples.'],
-  eventos: ['Gestão de eventos', 'Organize cada detalhe. Inspire o próximo passo.'],
-  inscricoes: ['Inscrições', 'Cada nome, uma nova história na linha de largada.'],
-  kits: ['Entrega de kits', 'Uma recepção organizada faz toda a diferença.'],
-  financeiro: ['Financeiro', 'Receitas, taxas e saldos, sem perder o ritmo.'],
-  repasses: ['Recebimentos e repasses', 'Acompanhe o caminho de cada valor.'],
-  cupons: ['Cupons de desconto', 'Um incentivo para mais gente se colocar em movimento.'],
-  perfil: ['Meu perfil', 'Os detalhes de quem faz acontecer.'],
-  organizadores: ['Organizadores', 'A comunidade por trás de cada evento.'],
-  pagamentos: ['Pagamentos', 'Acompanhe cada transação da plataforma.'],
-  historico: ['Atividades', 'Um histórico claro do que aconteceu por aqui.'],
-  configuracoes: ['Configurações', 'Ajuste a experiência para o seu jeito.'],
+  'visao-geral': ['Visão geral', 'Resumo de inscrições, receita e próximos eventos.'],
+  eventos: ['Gestão de eventos', 'Crie, edite e publique seus eventos.'],
+  inscricoes: ['Inscrições', 'Atletas inscritos e status de pagamento.'],
+  kits: ['Entrega de kits', 'Controle de retirada de kits no credenciamento.'],
+  financeiro: ['Financeiro', 'Receitas, taxas e saldo disponível.'],
+  repasses: ['Recebimentos e repasses', 'Valores recebidos e repasses programados.'],
+  cupons: ['Cupons de desconto', 'Códigos de desconto para o checkout.'],
+  perfil: ['Meu perfil', 'Dados da organização e do responsável.'],
+  organizadores: ['Organizadores', 'Cadastros e aprovação de organizadores.'],
+  depoimentos: ['Depoimentos', 'Escolha quais depoimentos aparecem na página inicial.'],
+  pagamentos: ['Pagamentos', 'Transações processadas na plataforma.'],
+  historico: ['Atividades', 'Registro das ações feitas no painel.'],
+  configuracoes: ['Configurações', 'Tema, cores e preferências gerais.'],
 };
 
 export default function Workspace({ role }: { role: Exclude<Role, 'atleta'> }) {
@@ -81,13 +92,17 @@ export default function Workspace({ role }: { role: Exclude<Role, 'atleta'> }) {
     params = useSearchParams();
   const nav = role === 'admin' ? adminNav : organizerNav;
   const query = params.get('aba') || 'visao-geral';
-  const view = nav.some((n) => n.id === query) ? query : 'visao-geral';
+  const view = nav.some((n) => n.id === query) && !isLocked(query) ? query : 'visao-geral';
   const [open, setOpen] = useState(false),
     [create, setCreate] = useState(false),
     [notifications, setNotifications] = useState(false);
   useEffect(() => {
     if (ready && (!session || session.role !== role)) router.replace(`/entrar/?perfil=${role}`);
   }, [ready, session, role, router]);
+  const signOut = () => {
+    logout();
+    router.push(`/entrar/?perfil=${role}`);
+  };
   const navigate = (v: string) => {
     router.push(`/${role}/?aba=${v}`, { scroll: false });
     setOpen(false);
@@ -140,7 +155,17 @@ export default function Workspace({ role }: { role: Exclude<Role, 'atleta'> }) {
           {nav.map((n) => (
             <div key={n.id}>
               {n.section && <span className="nav-section-title">{n.section}</span>}
-              <button className={view === n.id ? 'active' : ''} onClick={() => navigate(n.id)}>
+              <button
+                className={[
+                  view === n.id && 'active',
+                  (isLocked(n.id) || isReadOnly(n.id)) && 'in-dev',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                aria-disabled={isLocked(n.id) || undefined}
+                data-tooltip={isLocked(n.id) || isReadOnly(n.id) ? DEV_LABEL : undefined}
+                onClick={() => !isLocked(n.id) && navigate(n.id)}
+              >
                 <n.icon size={18} />
                 <span>{n.label}</span>
                 {n.id === 'organizadores' && pendingOrgs > 0 && (
@@ -157,13 +182,6 @@ export default function Workspace({ role }: { role: Exclude<Role, 'atleta'> }) {
             Ver portal de eventos
             <ArrowUpRight size={14} />
           </Link>
-          <div className="sidebar-demo">
-            <span className="sidebar-demo-dot" />
-            <div>
-              <strong>Modo demonstração</strong>
-              <p>Tudo simulado. Nenhuma cobrança.</p>
-            </div>
-          </div>
           <div className="sidebar-profile">
             <span className="avatar">
               {session.name
@@ -180,10 +198,7 @@ export default function Workspace({ role }: { role: Exclude<Role, 'atleta'> }) {
               className="icon-button"
               aria-label="Sair do painel"
               title="Sair e trocar perfil"
-              onClick={() => {
-                logout();
-                router.push(`/entrar/?perfil=${role}`);
-              }}
+              onClick={signOut}
             >
               <LogOut size={17} />
             </button>
@@ -209,14 +224,16 @@ export default function Workspace({ role }: { role: Exclude<Role, 'atleta'> }) {
           <div>
             <DemoNotice compact />
             <ThemeToggle />
-            <button
-              className="icon-button notification-button"
-              aria-label="Ver atividades recentes"
-              onClick={() => setNotifications(true)}
-            >
-              <Bell size={19} />
-              <span />
-            </button>
+            {features.activityBell && (
+              <button
+                className="icon-button notification-button"
+                aria-label="Ver atividades recentes"
+                onClick={() => setNotifications(true)}
+              >
+                <Bell size={19} />
+                <span />
+              </button>
+            )}
             <span className="avatar topbar-avatar">
               {session.name
                 .split(' ')
@@ -224,6 +241,14 @@ export default function Workspace({ role }: { role: Exclude<Role, 'atleta'> }) {
                 .slice(0, 2)
                 .join('')}
             </span>
+            <button
+              className="button button-outline button-small topbar-logout"
+              aria-label="Sair da conta"
+              onClick={signOut}
+            >
+              <LogOut size={15} />
+              <span>Sair</span>
+            </button>
           </div>
         </header>
         <main className="workspace-content">
@@ -251,8 +276,9 @@ export default function Workspace({ role }: { role: Exclude<Role, 'atleta'> }) {
             <Finance key={view} events={events} transfersOnly={view === 'repasses'} />
           )}{' '}
           {view === 'cupons' && <Coupons events={events} />}{' '}
-          {view === 'organizadores' && <Organizers />} {view === 'historico' && <ActivityLog />}{' '}
-          {view === 'configuracoes' && <Settings />} {view === 'perfil' && <OrganizerProfile />}
+          {view === 'organizadores' && <Organizers />} {view === 'depoimentos' && <Testimonials />}{' '}
+          {view === 'historico' && <ActivityLog />} {view === 'configuracoes' && <Settings />}{' '}
+          {view === 'perfil' && <OrganizerProfile />}
           <footer className="workspace-footer">
             <span>CorridaAqui · Cada detalhe move uma conquista.</span>
             <span>Frontend demonstrativo · Dados locais e fictícios</span>
@@ -357,22 +383,21 @@ function OrganizerProfile() {
           </div>
         </form>
       </Panel>
-      <Panel
-        title="Sua experiência"
-        description="Preferências aplicadas a todas as áreas da plataforma."
-      >
+      <Panel title="Aparência" description="Preferências aplicadas a todas as áreas da plataforma.">
         <div className="settings-row">
           <div>
             <h3>Tema {theme === 'light' ? 'claro' : 'escuro'}</h3>
-            <p>Mais conforto para organizar o próximo desafio.</p>
+            <p>Alterna entre o modo claro e o escuro.</p>
           </div>
           <button className="button button-outline button-small" onClick={toggleTheme}>
             Alternar tema
           </button>
         </div>
-        <div className="settings-row">
-          <AccentPicker />
-        </div>
+        {features.personalAccent && (
+          <div className="settings-row">
+            <AccentPicker />
+          </div>
+        )}
       </Panel>
       <div className="info-message">
         <ShieldCheck size={17} />O login demonstrativo continua sendo organizador@corridaqui.demo e

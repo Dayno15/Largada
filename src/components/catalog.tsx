@@ -11,7 +11,6 @@ import {
   LayoutGrid,
   List,
   X,
-  ChevronDown,
   ShieldCheck,
   Compass,
   Ticket,
@@ -28,6 +27,7 @@ import { sports } from '@/lib/data';
 import { asset, clean, dateLabel, daysUntil, money, moneyCompact, states } from '@/lib/utils';
 import type { RaceEvent } from '@/lib/types';
 import { getSearch, setSearch, subscribeSearch } from '@/lib/search';
+import { features } from '@/lib/features';
 
 function useIntersect(ref: { current: Element | null }) {
   const [visible, setVisible] = useState(false);
@@ -108,7 +108,7 @@ export function EventCard({ event, used }: { event: RaceEvent; used: number }) {
             {event.sport}
           </span>
           <span className="image-top-right">
-            <FavoriteBtn eventId={event.id} />
+            {features.favorites && <FavoriteBtn eventId={event.id} />}
             <span className="image-arrow">
               <ArrowUpRight size={18} />
             </span>
@@ -166,30 +166,6 @@ export function EventCard({ event, used }: { event: RaceEvent; used: number }) {
   );
 }
 
-const testimonials = [
-  {
-    quote:
-      'Primeira meia maratona da minha vida! A plataforma foi tão simples que fiz a inscrição em menos de 5 minutos. No dia da prova, tudo impecável.',
-    name: 'Mariana S.',
-    initials: 'MS',
-    race: 'Meia Maratona do Cerrado',
-  },
-  {
-    quote:
-      'Já participei de várias corridas, mas essa foi diferente. A inscrição online facilitou demais e ainda consegui acompanhar tudo em tempo real.',
-    name: 'Rafael T.',
-    initials: 'RT',
-    race: 'Trail Serra dos Pireneus',
-  },
-  {
-    quote:
-      'Adorei poder ver os inscritos confirmados antes da prova. Dá aquela motivação extra para treinar mais forte!',
-    name: 'Ana Luíza M.',
-    initials: 'AL',
-    race: 'Capital Run · 10K',
-  },
-];
-
 export default function Catalog() {
   const { db, ready } = useApp();
   const query = useSyncExternalStore(subscribeSearch, getSearch, () => '');
@@ -237,6 +213,26 @@ export default function Catalog() {
   const daysLeft = featured ? daysUntil(featured.date) : 0;
 
   const confirmed = db.registrations.filter((r) => r.status === 'Confirmada');
+  const testimonials = db.testimonials
+    .filter((t) => t.visible)
+    .map((t) => {
+      const event = db.events.find((e) => e.id === t.eventId);
+      const reg = db.registrations.find((r) => r.id === t.registrationId);
+      const parts = t.name.trim().split(/\s+/);
+      return {
+        ...t,
+        author: parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0],
+        initials: (
+          parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')
+        ).toUpperCase(),
+        race: [event?.name, reg?.distance].filter(Boolean).join(' · '),
+      };
+    });
+  // A faixa anda até a metade e recomeça; as duas metades precisam ser iguais e
+  // largas o bastante para cobrir a tela, então repetimos a lista até ter 6 cards.
+  const half = testimonials.length
+    ? Array.from({ length: Math.ceil(6 / testimonials.length) }, () => testimonials).flat()
+    : [];
   const totalNet = confirmed.reduce((s, r) => s + r.amount - r.fee, 0);
   const totalUsed = events.reduce((s, e) => s + count(e.id), 0);
   const totalCapacity = events.reduce((s, e) => s + e.capacity, 0);
@@ -294,8 +290,8 @@ export default function Catalog() {
       <div className="filter-note">
         <ShieldCheck size={21} />
         <div>
-          <strong>Seu próximo desafio, sem complicação.</strong>
-          <p>Escolha a prova. A gente cuida do caminho até a largada.</p>
+          <strong>Inscrição em três etapas.</strong>
+          <p>Dados, pagamento e comprovante, tudo pelo site.</p>
         </div>
       </div>
     </>
@@ -325,9 +321,9 @@ export default function Catalog() {
                 começa <em>aqui.</em>
               </h1>
               <p>
-                Uma nova distância. Um novo lugar.
+                Corridas, trilhas, ciclismo e triathlon.
                 <br />
-                Encontre o evento que vai mover você.
+                Escolha a prova e faça a inscrição online.
               </p>
               <a href="#eventos" className="button button-lime">
                 Encontre seu desafio
@@ -338,9 +334,9 @@ export default function Catalog() {
                   5K<span>/</span>10K<span>/</span>21K<span>/</span>+
                 </span>
                 <span>
-                  Para todos os ritmos.
+                  Do primeiro 5K
                   <br />
-                  <strong>Inclusive o seu.</strong>
+                  <strong>à meia maratona.</strong>
                 </span>
               </div>
             </div>
@@ -367,7 +363,7 @@ export default function Catalog() {
               </Link>
             )}
             <span className="hero-vertical" aria-hidden="true">
-              NÃO É SÓ SOBRE CORRER. É SOBRE IR.
+              CORRIDA · TRILHA · MTB · CICLISMO · TRIATHLON
             </span>
           </div>
         </section>
@@ -377,11 +373,11 @@ export default function Catalog() {
               <strong>{events.length.toString().padStart(2, '0')}</strong> eventos para descobrir
             </span>
             <span>
-              <strong>05</strong> modalidades, muitos caminhos
+              <strong>05</strong> modalidades
             </span>
             <span>
               <ShieldCheck size={19} />
-              <strong>Inscrição simples.</strong> Do início à largada.
+              <strong>Comprovante com QR Code</strong> para retirar o kit
             </span>
             <span>
               <strong>{confirmed.length}+</strong> atletas confirmados
@@ -391,9 +387,9 @@ export default function Catalog() {
         <section className="container catalog-section" id="eventos">
           <div className="catalog-heading">
             <div>
-              <span className="eyebrow">CALENDÁRIO DE EXPERIÊNCIAS</span>
+              <span className="eyebrow">CALENDÁRIO DE EVENTOS</span>
               <h2>Qual é o seu próximo desafio?</h2>
-              <p>Do primeiro quilômetro à próxima conquista.</p>
+              <p>Filtre por modalidade, estado ou situação das inscrições.</p>
             </div>
             <div className="catalog-search">
               <Search size={19} />
@@ -436,7 +432,6 @@ export default function Catalog() {
                       <option value="recent">Mais recentes</option>
                       <option value="popular">Mais inscritos</option>
                     </select>
-                    <ChevronDown size={14} />
                   </label>
                   <div className="view-control">
                     <button
@@ -522,41 +517,59 @@ export default function Catalog() {
             </div>
           </div>
         </section>
-        <section className="testimonials-section">
-          <div className="container">
-            <div className="testimonials-heading">
-              <span className="eyebrow">QUEM JÁ CORREU CONTA</span>
-              <h2>A largada é o começo de tudo.</h2>
-              <p>De quem já cruzou a linha de chegada.</p>
+        {testimonials.length > 0 && (
+          <section className="testimonials-section">
+            <div className="container">
+              <div className="testimonials-heading">
+                <span className="eyebrow">DEPOIMENTOS</span>
+                <h2>O que dizem os atletas.</h2>
+                <p>
+                  Você poderá ligar/desligar quando quiser. Apenas atletas que já correram poderão
+                  dar depoimentos.
+                </p>
+              </div>
             </div>
-            <div className="testimonials-grid">
-              {testimonials.map((t) => (
-                <div key={t.name} className="testimonial-card">
-                  <p>&ldquo;{t.quote}&rdquo;</p>
-                  <div className="testimonial-author">
-                    <span className="testimonial-avatar">{t.initials}</span>
-                    <div>
-                      <strong>{t.name}</strong>
-                      <span>{t.race}</span>
-                    </div>
-                    <span className="testimonial-stars" aria-hidden="true">
-                      ★★★★★
-                    </span>
-                  </div>
-                </div>
-              ))}
+            <div className="testimonials-marquee">
+              <div
+                className="testimonials-track"
+                style={{ animationDuration: `${half.length * 7}s` }}
+              >
+                {[...half, ...half].map((t, i) => (
+                  <figure
+                    key={`${t.id}-${i}`}
+                    className="testimonial-card"
+                    aria-hidden={i >= testimonials.length || undefined}
+                  >
+                    <blockquote>&ldquo;{t.text}&rdquo;</blockquote>
+                    <figcaption className="testimonial-author">
+                      <span className="testimonial-avatar">{t.initials}</span>
+                      <div>
+                        <strong>{t.author}</strong>
+                        <span>{t.race}</span>
+                      </div>
+                      <span className="testimonial-stars" aria-hidden="true">
+                        ★★★★★
+                      </span>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
         <section className="how-section" id="como-funciona">
           <div className="container how-layout">
             <div>
-              <span className="eyebrow">MENOS BUROCRACIA. MAIS MOVIMENTO.</span>
+              <span className="eyebrow">COMO FUNCIONA</span>
               <h2>
                 Da vontade
                 <br />à linha de largada.
               </h2>
-              <p>O próximo passo é mais simples do que parece.</p>
+              <p>A inscrição leva poucos minutos.</p>
+              <Link href="/entrar/?perfil=atleta" className="button button-primary how-cta">
+                Conhecer a área do atleta
+                <ArrowUpRight size={17} />
+              </Link>
             </div>
             <div className="how-steps">
               {(
@@ -564,19 +577,19 @@ export default function Catalog() {
                   [
                     '01',
                     'Encontre a sua prova',
-                    'Explore modalidades, distâncias e novos lugares.',
+                    'Busque por modalidade, distância ou cidade.',
                     Compass,
                   ],
                   [
                     '02',
-                    'Garanta seu lugar',
-                    'Escolha seu kit e faça sua inscrição em poucos passos.',
+                    'Faça a inscrição',
+                    'Escolha distância e kit e pague com PIX, cartão ou boleto.',
                     Ticket,
                   ],
                   [
                     '03',
-                    'Prepare-se para viver',
-                    'Acompanhe tudo na sua área. Agora é com você.',
+                    'Retire seu kit',
+                    'Apresente o QR Code do comprovante no credenciamento.',
                     Flag,
                   ],
                 ] as const
@@ -595,13 +608,13 @@ export default function Catalog() {
         </section>
         <section className="container org-callout">
           <div>
-            <span className="eyebrow">PARA QUEM FAZ ACONTECER</span>
+            <span className="eyebrow">PARA ORGANIZADORES</span>
             <h2>
-              Sua próxima grande corrida
+              Organize seu evento
               <br />
-              começa nos bastidores.
+              pela plataforma.
             </h2>
-            <p>Inscrições, atletas e financeiro em um só lugar.</p>
+            <p>Inscritos, entrega de kits, cupons e financeiro no mesmo painel.</p>
             <Link href="/entrar/?perfil=organizador" className="button button-primary">
               Conhecer a área do organizador
               <ArrowUpRight size={17} />
