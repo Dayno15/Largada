@@ -24,7 +24,7 @@ import {
 import { Header, Footer } from './navigation';
 import { DemoNotice, useApp } from './provider';
 import { Badge, EmptyState, Panel, SportIcon, Modal } from './ui';
-import { asset, dateLabel, money, shortDate } from '@/lib/utils';
+import { asset, dateLabel, daysUntil, money, shortDate } from '@/lib/utils';
 import type { Registration } from '@/lib/types';
 
 const faqItems = [
@@ -60,6 +60,14 @@ export default function EventDetail() {
     [findModal, setFindModal] = useState(false),
     [findCpf, setFindCpf] = useState(''),
     [findResult, setFindResult] = useState<Registration | 'not-found' | null>(null);
+  const eventName = event?.name;
+  useEffect(() => {
+    if (!eventName) return;
+    document.title = `${eventName} | CorridaAqui`;
+    return () => {
+      document.title = 'CorridaAqui — Seu próximo ponto de partida';
+    };
+  }, [eventName]);
   if (!event)
     return (
       <>
@@ -84,9 +92,7 @@ export default function EventDetail() {
   );
   const open = event.status === 'Inscrições abertas';
   const soldOut = open && inscritos.length >= event.capacity;
-  const daysUntilStart = event.registrationStart
-    ? Math.max(0, Math.ceil((new Date(event.registrationStart + 'T12:00:00').getTime() - Date.now()) / 86400000))
-    : null;
+  const daysUntilStart = event.registrationStart ? daysUntil(event.registrationStart) : null;
   const findReg = () => {
     const cpf = findCpf.replace(/\D/g, '');
     if (!cpf) return;
@@ -95,12 +101,6 @@ export default function EventDetail() {
     );
     setFindResult(reg ?? 'not-found');
   };
-  useEffect(() => {
-    document.title = `${event.name} | CorridaAqui`;
-    return () => {
-      document.title = 'CorridaAqui — Seu próximo ponto de partida';
-    };
-  }, [event.name]);
   const share = async () => {
     const url = window.location.href;
     try {

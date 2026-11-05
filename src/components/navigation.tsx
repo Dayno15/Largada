@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useSyncExternalStore } from 'react';
 import {
   ArrowUpRight,
   Menu,
@@ -16,8 +16,11 @@ import {
   Instagram,
   Youtube,
   Activity,
+  Search,
+  LifeBuoy,
 } from 'lucide-react';
 import { useApp } from './provider';
+import { getSearch, setSearch, subscribeSearch } from '@/lib/search';
 
 export function Brand() {
   return (
@@ -45,22 +48,61 @@ export function ThemeToggle() {
     </button>
   );
 }
+const accents = [
+  ['teal', 'verde-petróleo'],
+  ['blue', 'azul'],
+  ['terra', 'terracota'],
+  ['orange', 'laranja largada'],
+  ['coral', 'coral pista'],
+  ['navy', 'azul noite'],
+  ['petrol', 'azul-petróleo'],
+  ['violet', 'roxo elétrico'],
+  ['magenta', 'magenta'],
+  ['graphite', 'grafite e lima'],
+] as const;
 export function AccentPicker() {
   const { accent, setAccent } = useApp();
   return (
     <div className="accent-picker">
       <Palette size={17} />
       <span>Cor da marca</span>
-      {['teal', 'blue', 'terra'].map((c) => (
-        <button
-          key={c}
-          className={`swatch ${c} ${accent === c ? 'selected' : ''}`}
-          onClick={() => setAccent(c)}
-          aria-label={`Cor ${c === 'teal' ? 'verde-petróleo' : c === 'blue' ? 'azul' : 'terracota'}`}
-          aria-pressed={accent === c}
-        />
-      ))}
+      <div className="accent-swatches">
+        {accents.map(([c, label]) => (
+          <button
+            key={c}
+            className={`swatch ${c} ${accent === c ? 'selected' : ''}`}
+            onClick={() => setAccent(c)}
+            aria-label={`Cor ${label}`}
+            title={label[0].toUpperCase() + label.slice(1)}
+            aria-pressed={accent === c}
+          />
+        ))}
+      </div>
     </div>
+  );
+}
+function HeaderSearch() {
+  const router = useRouter();
+  const value = useSyncExternalStore(subscribeSearch, getSearch, () => '');
+  return (
+    <form
+      className="header-search"
+      role="search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setSearch(value.trim());
+        router.push('/#eventos');
+      }}
+    >
+      <Search size={16} aria-hidden="true" />
+      <input
+        type="search"
+        aria-label="Buscar corrida, cidade ou distância"
+        placeholder="Corrida, cidade ou distância"
+        value={value}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+    </form>
   );
 }
 export function Header() {
@@ -68,48 +110,61 @@ export function Header() {
   const path = usePathname();
   const { session } = useApp();
   const account = session?.role === 'atleta' ? '/atleta/' : '/entrar/?perfil=atleta';
+  const organizer =
+    session?.role === 'organizador' ? '/organizador/' : '/entrar/?perfil=organizador';
   return (
-    <header className="site-header">
-      <div className="container header-inner">
-        <Brand />
-        <nav className={`main-nav ${open ? 'open' : ''}`} aria-label="Navegação principal">
-          <Link className={path === '/' ? 'active' : ''} href="/" onClick={() => setOpen(false)}>
-            Explorar eventos
-          </Link>
-          <Link
-            className={path === '/atleta/' ? 'active' : ''}
-            href={account}
-            onClick={() => setOpen(false)}
-          >
-            Minhas inscrições
-          </Link>
-          <Link
-            className="organizer-link"
-            href={session?.role === 'organizador' ? '/organizador/' : '/entrar/?perfil=organizador'}
-            onClick={() => setOpen(false)}
-          >
+    <>
+      <div className="header-top">
+        <div className="container header-top-inner">
+          <Link href="/#como-funciona">Ajuda</Link>
+          <Link href={organizer} className="header-top-strong">
             Sou organizador
-            <ArrowUpRight size={15} />
+            <ArrowUpRight size={14} />
           </Link>
-        </nav>
-        <div className="header-actions">
-          <ThemeToggle />
-          <span className="header-divider" />
-          <Link href={session ? `/${session.role}/` : '/entrar/'} className="account-button">
-            <UserRound size={17} />
-            <span>{session ? 'Minha área' : 'Entrar'}</span>
-          </Link>
-          <button
-            className="icon-button mobile-menu"
-            onClick={() => setOpen(!open)}
-            aria-label={open ? 'Fechar menu' : 'Abrir menu'}
-            aria-expanded={open}
-          >
-            {open ? <X size={22} /> : <Menu size={22} />}
-          </button>
         </div>
       </div>
-    </header>
+      <header className="site-header">
+        <div className="container header-inner">
+          <Brand />
+          <HeaderSearch />
+          <nav className={`main-nav ${open ? 'open' : ''}`} aria-label="Navegação principal">
+            <Link className={path === '/' ? 'active' : ''} href="/" onClick={() => setOpen(false)}>
+              Explorar eventos
+            </Link>
+            <Link
+              className={path === '/atleta/' ? 'active' : ''}
+              href={account}
+              onClick={() => setOpen(false)}
+            >
+              Minhas inscrições
+            </Link>
+            <Link className="organizer-link" href={organizer} onClick={() => setOpen(false)}>
+              Sou organizador
+              <ArrowUpRight size={15} />
+            </Link>
+            <Link className="mobile-only" href="/#como-funciona" onClick={() => setOpen(false)}>
+              <LifeBuoy size={15} />
+              Ajuda
+            </Link>
+          </nav>
+          <div className="header-actions">
+            <ThemeToggle />
+            <Link href={session ? `/${session.role}/` : '/entrar/'} className="account-button">
+              <UserRound size={17} />
+              <span>{session ? 'Minha área' : 'Entrar'}</span>
+            </Link>
+            <button
+              className="icon-button mobile-menu"
+              onClick={() => setOpen(!open)}
+              aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+              aria-expanded={open}
+            >
+              {open ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
+        </div>
+      </header>
+    </>
   );
 }
 export function Footer() {

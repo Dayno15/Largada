@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Evita que o Next use um package-lock.json de uma pasta acima do projeto.
+  turbopack: { root: __dirname },
   devIndicators: false,
   allowedDevOrigins: ['127.0.0.1'],
   output: 'export',

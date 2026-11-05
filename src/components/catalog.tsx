@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useSyncExternalStore } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -25,17 +25,14 @@ import { Header, Footer } from './navigation';
 import { useApp } from './provider';
 import { Badge, EmptyState, SportIcon, Modal } from './ui';
 import { sports } from '@/lib/data';
-import { asset, clean, dateLabel, money, states } from '@/lib/utils';
+import { asset, clean, dateLabel, daysUntil, money, moneyCompact, states } from '@/lib/utils';
 import type { RaceEvent } from '@/lib/types';
+import { getSearch, setSearch, subscribeSearch } from '@/lib/search';
 
 function useIntersect(ref: { current: Element | null }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setVisible(true);
-      return;
-    }
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -51,19 +48,30 @@ function useIntersect(ref: { current: Element | null }) {
   return visible;
 }
 
+const FAVS_EVENT = 'cq-favs-change';
+const readFavs = (): string[] => JSON.parse(localStorage.getItem('cq_favs') || '[]');
+const subscribeFavs = (onChange: () => void) => {
+  window.addEventListener(FAVS_EVENT, onChange);
+  window.addEventListener('storage', onChange);
+  return () => {
+    window.removeEventListener(FAVS_EVENT, onChange);
+    window.removeEventListener('storage', onChange);
+  };
+};
+
 function FavoriteBtn({ eventId }: { eventId: string }) {
-  const [fav, setFav] = useState(false);
-  useEffect(() => {
-    const favs: string[] = JSON.parse(localStorage.getItem('cq_favs') || '[]');
-    setFav(favs.includes(eventId));
-  }, [eventId]);
+  const fav = useSyncExternalStore(
+    subscribeFavs,
+    () => readFavs().includes(eventId),
+    () => false,
+  );
   const toggle = (e: { preventDefault(): void; stopPropagation(): void }) => {
     e.preventDefault();
     e.stopPropagation();
-    const favs: string[] = JSON.parse(localStorage.getItem('cq_favs') || '[]');
+    const favs = readFavs();
     const next = fav ? favs.filter((id) => id !== eventId) : [...favs, eventId];
     localStorage.setItem('cq_favs', JSON.stringify(next));
-    setFav(!fav);
+    window.dispatchEvent(new Event(FAVS_EVENT));
   };
   return (
     <button
@@ -85,16 +93,13 @@ export function EventCard({ event, used }: { event: RaceEvent; used: number }) {
   const lastSpots = open && pct >= 80;
   const upcoming = event.status === 'Em breve';
   const daysUntilReg =
-    upcoming && event.registrationStart
-      ? Math.max(
-          0,
-          Math.ceil(
-            (new Date(event.registrationStart + 'T12:00:00').getTime() - Date.now()) / 86400000,
-          ),
-        )
-      : null;
+    upcoming && event.registrationStart ? daysUntil(event.registrationStart) : null;
   return (
-    <Link ref={ref} href={`/evento/?id=${event.id}`} className={`event-card${visible ? ' in' : ''}`}>
+    <Link
+      ref={ref}
+      href={`/evento/?id=${event.id}`}
+      className={`event-card${visible ? ' in' : ''}`}
+    >
       <div className="event-image">
         <img src={asset(event.image)} alt={`${event.sport} em ${event.city}`} loading="lazy" />
         <div className="event-image-top">
@@ -127,11 +132,16 @@ export function EventCard({ event, used }: { event: RaceEvent; used: number }) {
         {open && (
           <div className="capacity-row">
             <div className="capacity-bar">
-              <div className={`capacity-fill${almostFull ? ' warning' : ''}`} style={{ width: `${pct}%` }} />
+              <div
+                className={`capacity-fill${almostFull ? ' warning' : ''}`}
+                style={{ width: `${pct}%` }}
+              />
             </div>
             <div className="capacity-label">
               <span>{used} inscritos</span>
-              <span className={almostFull ? 'capacity-urgent' : ''}>{event.capacity - used} vagas</span>
+              <span className={almostFull ? 'capacity-urgent' : ''}>
+                {event.capacity - used} vagas
+              </span>
             </div>
           </div>
         )}
@@ -182,8 +192,9 @@ const testimonials = [
 
 export default function Catalog() {
   const { db, ready } = useApp();
-  const [query, setQuery] = useState(''),
-    [sport, setSport] = useState(''),
+  const query = useSyncExternalStore(subscribeSearch, getSearch, () => '');
+  const setQuery = setSearch;
+  const [sport, setSport] = useState(''),
     [state, setState] = useState(''),
     [status, setStatus] = useState(''),
     [sort, setSort] = useState('date'),
@@ -198,7 +209,9 @@ export default function Catalog() {
         (!sport || e.sport === sport) &&
         (!state || e.state === state) &&
         (!status || e.status === status) &&
-        clean(`${e.name} ${e.city} ${e.sport}`).includes(clean(query)),
+        clean(
+          `${e.name} ${e.city} ${e.sport} ${e.distances.map((d) => d.name).join(' ')}`,
+        ).includes(clean(query)),
     )
     .sort((a, b) =>
       sort === 'popular'
@@ -221,9 +234,7 @@ export default function Catalog() {
     db.events
       .filter((e) => e.status === 'Inscrições abertas')
       .sort((a, b) => a.date.localeCompare(b.date))[0];
-  const daysLeft = featured
-    ? Math.max(0, Math.ceil((new Date(featured.date + 'T12:00:00').getTime() - Date.now()) / 86400000))
-    : 0;
+  const daysLeft = featured ? daysUntil(featured.date) : 0;
 
   const confirmed = db.registrations.filter((r) => r.status === 'Confirmada');
   const totalNet = confirmed.reduce((s, r) => s + r.amount - r.fee, 0);
@@ -528,14 +539,16 @@ export default function Catalog() {
                       <strong>{t.name}</strong>
                       <span>{t.race}</span>
                     </div>
-                    <span className="testimonial-stars" aria-hidden="true">★★★★★</span>
+                    <span className="testimonial-stars" aria-hidden="true">
+                      ★★★★★
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </section>
-        <section className="how-section">
+        <section className="how-section" id="como-funciona">
           <div className="container how-layout">
             <div>
               <span className="eyebrow">MENOS BUROCRACIA. MAIS MOVIMENTO.</span>
@@ -604,7 +617,7 @@ export default function Catalog() {
                 </div>
                 <div className="org-stat">
                   <TrendingUp size={14} />
-                  <strong>{money(totalNet)}</strong>
+                  <strong title={money(totalNet)}>{moneyCompact(totalNet)}</strong>
                   <span>Arrecadado</span>
                 </div>
                 <div className="org-stat">

@@ -24,12 +24,14 @@ const lora = Lora({
   weight: ['400', '600', '700'],
 });
 const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+const site = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 export const metadata: Metadata = {
+  metadataBase: new URL(site),
   title: { default: 'CorridaAqui — Seu próximo ponto de partida', template: '%s | CorridaAqui' },
   description:
     'Encontre seu próximo desafio. Eventos esportivos, inscrições e gestão em uma plataforma.',
   icons: { icon: `${base}/icon.svg`, apple: `${base}/icon.svg` },
-  manifest: '/manifest.json',
+  manifest: `${base}/manifest.json`,
   appleWebApp: { capable: true, title: 'CorridaAqui' },
   openGraph: {
     title: 'CorridaAqui — Seu próximo ponto de partida',
@@ -43,7 +45,12 @@ export const metadata: Metadata = {
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className={`${manrope.variable} ${lora.variable}`}>
+    <html
+      lang="pt-BR"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+      className={`${manrope.variable} ${lora.variable}`}
+    >
       <body suppressHydrationWarning>
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo

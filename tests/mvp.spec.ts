@@ -54,7 +54,7 @@ test('textos de apoio maiores preservam os títulos em desktop e celular', async
   await expect(page.locator('.catalog-heading h2')).toHaveCSS('font-size', '29px');
   await expect(page.locator('.catalog-heading p')).toHaveCSS('font-size', '14px');
   await expect(page.locator('.event-card h3').first()).toHaveCSS('font-size', '15px');
-  await expect(page.locator('.event-location').first()).toHaveCSS('font-size', '11px');
+  await expect(page.locator('.event-location').first()).toHaveCSS('font-size', '12px');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('.hero h1')).toHaveCSS('font-size', '43px');
@@ -316,7 +316,7 @@ test('cupons do organizador aparecem no checkout, tema e cor persistem', async (
   await modal.getByRole('button', { name: 'Criar cupom', exact: true }).click();
   await expect(page.locator('tbody')).toContainText('APRESENTACAO');
   await page.goto('/organizador/?aba=perfil');
-  await page.getByRole('button', { name: 'Cor azul' }).click();
+  await page.getByRole('button', { name: 'Cor azul', exact: true }).click();
   await page.getByRole('button', { name: 'Alternar tema', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('html')).toHaveAttribute('data-accent', 'blue');

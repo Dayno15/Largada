@@ -1,5 +1,13 @@
 export const money = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+/** Valor resumido para espaços estreitos, ex.: "R$ 12,3 mil". */
+export const moneyCompact = (v: number) =>
+  v.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  });
 export const dateLabel = (v: string, options?: Intl.DateTimeFormatOptions) =>
   new Date(`${v.slice(0, 10)}T12:00:00`).toLocaleDateString(
     'pt-BR',
@@ -7,6 +15,9 @@ export const dateLabel = (v: string, options?: Intl.DateTimeFormatOptions) =>
   );
 export const shortDate = (v: string) =>
   dateLabel(v, { day: '2-digit', month: '2-digit', year: 'numeric' });
+/** Dias inteiros (arredondados para cima, mínimo 0) até a data `YYYY-MM-DD`. */
+export const daysUntil = (date: string) =>
+  Math.max(0, Math.ceil((new Date(date + 'T12:00:00').getTime() - Date.now()) / 86400000));
 export const asset = (path: string) =>
   /^(data:|https?:)/.test(path) ? path : `${process.env.NEXT_PUBLIC_BASE_PATH || ''}${path}`;
 export const clean = (s: string) =>
